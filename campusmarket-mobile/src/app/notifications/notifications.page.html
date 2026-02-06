@@ -1,0 +1,42 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Notificaciones</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="markAllAsRead()">
+        <ion-icon slot="icon-only" name="checkmark-done"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div *ngIf="loading" class="ion-text-center ion-padding">
+    <ion-spinner></ion-spinner>
+  </div>
+
+  <div *ngIf="!loading && notifications.length === 0" class="empty-state ion-text-center">
+    <ion-icon name="notifications-off-outline" size="large" color="medium"></ion-icon>
+    <h3>No hay notificaciones</h3>
+    <p>Te avisaremos cuando haya novedades en tus pedidos o productos favoritos.</p>
+  </div>
+
+  <ion-list *ngIf="notifications.length > 0">
+    <ion-item *ngFor="let note of notifications" [color]="note.Leido ? '' : 'light'" (click)="goToDetail(note)">
+      <ion-icon [name]="note.Tipo === 'STOCK_ALERT' ? 'heart' : 'receipt'"
+        [color]="note.Tipo === 'STOCK_ALERT' ? 'danger' : 'primary'" slot="start">
+      </ion-icon>
+      <ion-label>
+        <h3 [style.font-weight]="note.Leido ? 'normal' : 'bold'">{{ note.Mensaje }}</h3>
+        <p>{{ note.Fecha | date:'short' }}</p>
+      </ion-label>
+      <ion-badge *ngIf="!note.Leido" color="primary" slot="end">NUEVA</ion-badge>
+    </ion-item>
+  </ion-list>
+</ion-content>

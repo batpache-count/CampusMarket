@@ -1,0 +1,7 @@
+{
+  "name": "campusmarket-mobile",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

@@ -1,0 +1,38 @@
+<div class="container" style="max-width: 800px; margin: 40px auto; padding: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h2 style="color: #1e293b; margin: 0;">🔔 Centro de Notificaciones</h2>
+        <button *ngIf="notifications.length > 0" (click)="markAllAsRead()"
+            style="background: #e2e8f0; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; color: #475569; font-weight: 500;">
+            Marcar todas como leídas
+        </button>
+    </div>
+
+    <div *ngIf="loading" style="text-align: center; padding: 50px; color: #64748b;">
+        Cargando tus avisos...
+    </div>
+
+    <div *ngIf="!loading && notifications.length === 0"
+        style="text-align: center; padding: 60px; background: #f8fafc; border-radius: 20px; border: 2px dashed #e2e8f0;">
+        <p style="font-size: 1.2rem; color: #64748b;">No tienes notificaciones por el momento.</p>
+    </div>
+
+    <div class="notifications-list" *ngIf="notifications.length > 0">
+        <div *ngFor="let n of notifications" (click)="markAsRead(n.ID_Notificacion)"
+            [style.opacity]="n.Leida ? '0.6' : '1'"
+            [style.border-left]="n.Leida ? '4px solid #cbd5e1' : '4px solid #22c55e'"
+            style="background: white; margin-bottom: 12px; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.2s; display: flex; gap: 20px; align-items: center;">
+
+            <div style="font-size: 2rem;">{{ getIcon(n.Tipo) }}</div>
+
+            <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <h4 style="margin: 0; color: #1e293b; font-size: 1.05rem;">{{ n.Titulo }}</h4>
+                    <span style="font-size: 0.8rem; color: #94a3b8;">{{ n.Fecha | date:'short' }}</span>
+                </div>
+                <p style="margin: 0; color: #475569; font-size: 0.95rem; line-height: 1.4;">{{ n.Mensaje }}</p>
+            </div>
+
+            <div *ngIf="!n.Leida" style="width: 10px; height: 10px; background: #22c55e; border-radius: 50%;"></div>
+        </div>
+    </div>
+</div>

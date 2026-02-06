@@ -1,0 +1,446 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
+
+/* === ESTILOS GLOBALES BÁSICOS === */
+:host {
+  font-family: 'Poppins', sans-serif;
+  display: block;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.utm-green {
+  color: #00A859;
+}
+
+
+/* === 1. NAVBAR SUPERIOR === */
+.top-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 40px;
+  background-color: var(--card-background-color);
+  position: sticky;
+  /* Se queda pegada al bajar */
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+}
+
+.nav-logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+
+
+.cart-btn-container {
+  position: relative;
+}
+
+.cart-btn {
+  font-size: 1.2rem;
+}
+
+.cart-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #ef4444;
+  /* Rojo notificación */
+  color: white;
+  font-size: 0.7rem;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--card-background-color);
+}
+
+.user-menu {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  /* Oculto por defecto */
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background-color: var(--card-background-color);
+  min-width: 160px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 10px 0;
+  z-index: 1001;
+  border: 1px solid var(--input-border-color);
+}
+
+.user-menu:hover .dropdown-content {
+  display: block;
+  /* Se muestra al pasar el mouse */
+}
+
+.dropdown-content a {
+  color: var(--text-color);
+  padding: 10px 20px;
+  text-decoration: none;
+  display: block;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.dropdown-content a:hover {
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
+}
+
+.dropdown-content hr {
+  border: none;
+  border-top: 1px solid var(--input-border-color);
+  margin: 5px 0;
+}
+
+.logout-text {
+  color: #ef4444 !important;
+  /* Rojo para salir */
+}
+
+.logout-text:hover {
+  background-color: #fef2f2 !important;
+}
+
+/* === 2. CONTENEDOR PRINCIPAL DEL MARKETPLACE === */
+.marketplace-container {
+  min-height: calc(100vh - 80px);
+  /* Altura de la pantalla menos la navbar */
+}
+
+/* === 3. HERO BANNER === */
+.hero-banner {
+  background-color: #000;
+  /* Negro para contraste elegante */
+  color: white;
+  padding: 60px 40px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0 0 30px 30px;
+  margin-bottom: 40px;
+  text-align: center;
+  /* Centrar el texto */
+}
+
+.hero-content h1 {
+  font-size: 5rem;
+  margin: 0;
+  line-height: 1;
+  letter-spacing: -2px;
+  text-transform: uppercase;
+}
+
+.stroke-text {
+  color: transparent;
+  -webkit-text-stroke: 2px #00A859;
+  /* Borde Verde Neón */
+}
+
+.hero-content p {
+  font-size: 1.2rem;
+  color: var(--text-color-light);
+  margin-top: 10px;
+}
+
+.hero-decoration {
+  position: absolute;
+  right: 80px;
+  /* Ajustado para que se vea mejor */
+  top: 10px;
+  font-size: 10rem;
+  opacity: 0.2;
+  transform: rotate(20deg);
+}
+
+/* === 4. LAYOUT PRINCIPAL (Sidebar + Main) === */
+.main-layout {
+  display: flex;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+  gap: 40px;
+}
+
+/* --- SIDEBAR --- */
+.sidebar-filters {
+  width: 250px;
+  flex-shrink: 0;
+  background-color: var(--card-background-color);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  align-self: flex-start;
+  /* Prevent stretching to full height */
+  position: sticky;
+  /* Optional: Keep it visible while scrolling */
+  top: 100px;
+  /* Offset for the navbar */
+}
+
+@media (max-width: 768px) {
+  .sidebar-filters {
+    display: none;
+  }
+
+  /* Oculto en móvil */
+}
+
+.sidebar-filters h3 {
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  font-weight: 800;
+  color: var(--text-color);
+}
+
+.category-list {
+  list-style: none;
+  padding: 0;
+}
+
+.category-list li {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  cursor: pointer;
+  color: var(--text-color-light);
+  transition: 0.3s;
+  border-bottom: 1px solid var(--input-border-color);
+}
+
+.category-list li:hover,
+.category-list li.active {
+  color: #00A859;
+  font-weight: 400;
+  /* Ensure it stays normal */
+  padding-left: 0;
+  /* Ensure no padding shift */
+  background-color: transparent;
+  /* Remove background to avoid any box-model issues */
+}
+
+.category-list li .icon {
+  margin-right: 10px;
+  font-size: 1.1rem;
+}
+
+.category-list li .arrow {
+  margin-left: auto;
+  font-size: 1.2rem;
+}
+
+/* --- PRODUCT AREA --- */
+.products-area {
+  flex: 1;
+}
+
+/* TOP BAR (Buscador) */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.search-pill {
+  background: var(--input-background-color);
+  padding: 10px 20px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+  border: 2px solid transparent;
+  transition: 0.3s;
+}
+
+.search-pill:focus-within {
+  border-color: #00A859;
+  background: var(--card-background-color);
+  box-shadow: 0 4px 15px rgba(0, 168, 89, 0.1);
+}
+
+.search-pill input {
+  border: none;
+  background: transparent;
+  margin-left: 10px;
+  width: 100%;
+  outline: none;
+  font-family: 'Poppins', sans-serif;
+  color: var(--text-color);
+}
+
+/* === GRID Y TARJETAS (Estilo Stuffus) === */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 30px;
+}
+
+.stuffus-card {
+  background: var(--card-background-color);
+  border-radius: 24px;
+  /* Bordes muy redondos */
+  overflow: hidden;
+  transition: transform 0.3s ease;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+}
+
+.stuffus-card:hover {
+  transform: translateY(-10px);
+}
+
+.card-image-bg {
+  background-color: var(--input-background-color);
+  height: 280px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 24px;
+  margin: 10px;
+}
+
+.card-image-bg img {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  object-fit: contain;
+  mix-blend-mode: var(--image-blend-mode, multiply);
+}
+
+.badge-vivid {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: #00A859;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+.card-info {
+  padding: 5px 15px 20px 15px;
+}
+
+.category-tag {
+  font-size: 0.75rem;
+  color: var(--text-color-light);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 5px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rating {
+  font-size: 0.8rem;
+  color: #fbbf24;
+  margin-bottom: 15px;
+}
+
+.info-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.price {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text-color);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--input-border-color);
+  padding: 8px 16px;
+  border-radius: 30px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  color: var(--text-color);
+}
+
+.btn-outline:hover {
+  border-color: #00A859;
+  color: #00A859;
+}
+
+.btn-solid {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 30px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-solid:hover {
+  background: var(--primary-color-hover);
+  box-shadow: 0 4px 15px rgba(0, 168, 89, 0.4);
+}
+
+/* === ESTILOS AGOTADO === */
+.out-of-stock {
+  opacity: 0.7;
+  filter: grayscale(0.8);
+  pointer-events: none;
+  /* Deshabilitar clics en toda la tarjeta (opcional, pero mejor solo en el botón) */
+}
+
+/* Permitir clic en el botón "Ver" aunque esté agotado */
+.out-of-stock .action-buttons button:first-child {
+  pointer-events: auto;
+}
+
+.badge-sold-out {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: #ef4444;
+  /* Rojo */
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  z-index: 10;
+}

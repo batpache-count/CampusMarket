@@ -1,0 +1,40 @@
+<ion-header [translucent]="true">
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-back-button defaultHref="/home"></ion-back-button>
+        </ion-buttons>
+        <ion-title>Productos de {{ sellerName }}</ion-title>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+    <div *ngIf="loading" class="ion-text-center ion-padding">
+        <ion-spinner></ion-spinner>
+        <p>Cargando productos...</p>
+    </div>
+
+    <div *ngIf="!loading && products.length === 0" class="ion-text-center ion-padding">
+        <p>No se encontraron productos de este vendedor.</p>
+    </div>
+
+    <ion-grid *ngIf="!loading && products.length > 0">
+        <ion-row>
+            <ion-col size="6" size-md="4" size-lg="3" *ngFor="let product of products">
+                <ion-card class="product-card" [routerLink]="['/product-detail', product.ID_Producto]">
+                    <div class="image-container">
+                        <img [src]="apiUrl + '/uploads/' + product.Imagen_URL" alt="{{ product.Nombre }}"
+                            onerror="this.src='assets/placeholder.png'" />
+                        <ion-badge *ngIf="product.Stock <= 0" color="dark" class="stock-badge">AGOTADO</ion-badge>
+                    </div>
+                    <ion-card-header>
+                        <ion-card-subtitle>{{ product.Categoria }}</ion-card-subtitle>
+                        <ion-card-title>{{ product.Nombre }}</ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                        <h3 class="price">{{ product.Precio | currency }}</h3>
+                    </ion-card-content>
+                </ion-card>
+            </ion-col>
+        </ion-row>
+    </ion-grid>
+</ion-content>

@@ -1,0 +1,80 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/profile"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Estadísticas de Compra</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div *ngIf="loading" class="ion-text-center ion-padding">
+    <ion-spinner></ion-spinner>
+    <p>Analizando tus compras...</p>
+  </div>
+
+  <div *ngIf="!loading && metrics">
+    <!-- Summary Cards -->
+    <ion-grid>
+      <ion-row>
+        <ion-col size="6">
+          <ion-card class="metric-card">
+            <ion-card-content>
+              <ion-icon name="wallet-outline" color="success"></ion-icon>
+              <h2>{{ metrics.summary.totalSpent | currency }}</h2>
+              <p>Total Gastado</p>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+        <ion-col size="6">
+          <ion-card class="metric-card">
+            <ion-card-content>
+              <ion-icon name="receipt-outline" color="primary"></ion-icon>
+              <h2>{{ metrics.summary.orderCount }}</h2>
+              <p>Pedidos Totales</p>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    <!-- Monthly Spending Chart (Simple Bars) -->
+    <ion-card class="chart-card">
+      <ion-card-header>
+        <ion-card-title>Gasto Mensual</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="bar-chart">
+          <div *ngFor="let item of metrics.monthlySpending" class="bar-container">
+            <div class="bar" [style.height.%]="getHeigtPercentage(item.amount, maxMonthly)">
+              <span class="value">{{ item.amount | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            <span class="label">{{ item.month }}</span>
+          </div>
+          <div *ngIf="metrics.monthlySpending.length === 0" class="ion-text-center">
+            <p>No hay datos suficientes para mostrar gráficos.</p>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Top Categories -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Categorías Favoritas</ion-card-title>
+      </ion-card-header>
+      <ion-list lines="none">
+        <ion-item *ngFor="let cat of metrics.categoryDist">
+          <ion-label>
+            <h2>{{ cat.Nombre }}</h2>
+            <ion-progress-bar [value]="cat.spending / metrics.summary.totalSpent" color="secondary"></ion-progress-bar>
+          </ion-label>
+          <ion-note slot="end">{{ cat.spending | currency }}</ion-note>
+        </ion-item>
+        <div *ngIf="metrics.categoryDist.length === 0" class="ion-text-center ion-padding">
+          <p>Realiza más pedidos para ver tu distribución.</p>
+        </div>
+      </ion-list>
+    </ion-card>
+  </div>
+</ion-content>

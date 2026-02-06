@@ -1,0 +1,54 @@
+.orders-container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 20px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.header-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+}
+
+.btn-back { text-decoration: none; color: #666; font-weight: 600; }
+.btn-back:hover { color: #000; }
+
+h1 { margin: 0; font-size: 1.8rem; color: #111; }
+
+.empty-state { text-align: center; padding: 50px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+.btn-shop { display: inline-block; margin-top: 15px; background: #000; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; }
+
+/* TARJETAS DE PEDIDO */
+.order-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  margin-bottom: 20px;
+  overflow: hidden;
+  border: 1px solid #f0f0f0;
+}
+
+.order-header {
+  background: #f9fafb;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+}
+
+.order-id { font-weight: bold; color: #333; }
+.order-date { color: #666; font-size: 0.9rem; }
+
+.status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; }
+.status-badge.Pendiente { background: #fffbeb; color: #b45309; }
+.status-badge.Entregado { background: #ecfdf5; color: #047857; }
+
+.order-body { padding: 20px; }
+.info-row { display: flex; justify-content: space-between; margin-bottom: 8px; color: #555; }
+.total-row { margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; font-size: 1.1rem; color: #000; }
+.total-price { color: #2563eb; font-weight: 800; }

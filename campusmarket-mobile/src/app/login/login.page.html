@@ -1,0 +1,42 @@
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>CampusMarket</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <div class="login-container">
+    <div class="logo-container">
+      <!-- Placeholder for logo -->
+      <ion-icon name="cart-outline" size="large" color="primary" style="font-size: 80px;"></ion-icon>
+      <h2>Bienvenido v2</h2>
+      <p>Inicia sesión para continuar</p>
+    </div>
+
+    <ion-card>
+      <ion-card-content>
+        <ion-item lines="full">
+          <ion-label position="floating">Correo Electrónico</ion-label>
+          <ion-input type="email" [(ngModel)]="email" required></ion-input>
+        </ion-item>
+
+        <ion-item lines="full">
+          <ion-label position="floating">Contraseña</ion-label>
+          <ion-input type="password" [(ngModel)]="password" required></ion-input>
+        </ion-item>
+
+        <div class="ion-margin-top">
+          <ion-button expand="block" (click)="onLogin()">
+            Ingresar
+          </ion-button>
+        </div>
+
+        <div class="ion-margin-top ion-text-center">
+          <ion-button fill="clear" size="small" (click)="goToRegister()">
+            ¿No tienes cuenta? Regístrate aquí
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

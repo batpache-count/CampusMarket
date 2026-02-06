@@ -1,0 +1,106 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button (click)="toggleFavorite()" [color]="isFavorite ? 'danger' : 'medium'">
+        <ion-icon [name]="isFavorite ? 'heart' : 'heart-outline'"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Detalle del Producto</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <div *ngIf="loading" class="ion-text-center ion-padding">
+    <ion-spinner></ion-spinner>
+  </div>
+
+  <div *ngIf="product && !loading">
+    <div class="image-container">
+      <img [src]="apiUrl + '/uploads/' + product.Imagen_URL" onerror="this.src='assets/placeholder.png'" />
+    </div>
+
+    <div class="product-info">
+      <ion-badge color="secondary">{{ product.Categoria_Nombre }}</ion-badge>
+      <h1>{{ product.Nombre }}</h1>
+
+      <div class="rating-container ion-margin-bottom">
+        <ion-icon *ngFor="let star of [1,2,3,4,5]"
+          [name]="star <= (userRating || product.Promedio_Calificacion) ? 'star' : 'star-outline'" [color]="'warning'"
+          (click)="rateProduct(star)" style="cursor: pointer; font-size: 24px;">
+        </ion-icon>
+        <span class="rating-text ion-margin-start">({{ product.Total_Votos }} calificaciones)</span>
+      </div>
+
+      <h2 class="price">{{ product.Precio | currency }}</h2>
+
+      <p class="description">{{ product.Descripcion }}</p>
+
+      <div class="seller-info" *ngIf="product.Nombre_Tienda" [routerLink]="['/seller-products']"
+        [queryParams]="{name: product.Nombre_Tienda}" style="cursor: pointer;">
+        <ion-icon name="storefront-outline"></ion-icon>
+        <span>Vendido por: <strong>{{ product.Nombre_Tienda }}</strong></span>
+      </div>
+
+      <div class="stock-info">
+        <ion-text [color]="product.Stock > 0 ? 'success' : 'danger'">
+          {{ product.Stock > 0 ? 'Disponible (' + product.Stock + ')' : 'Agotado' }}
+        </ion-text>
+      </div>
+    </div>
+
+    <ion-divider class="ion-margin-vertical"></ion-divider>
+
+    <!-- Write Review Section -->
+    <div class="write-review-section ion-margin-top ion-padding">
+      <h3>Calificar este producto</h3>
+      <div class="star-rating">
+        <ion-icon *ngFor="let s of [1,2,3,4,5]" [name]="s <= (tempRating || 0) ? 'star' : 'star-outline'"
+          [color]="(tempRating || 0) >= s ? 'warning' : 'medium'" (click)="tempRating = s"
+          style="font-size: 32px;"></ion-icon>
+      </div>
+      <ion-item lines="none" class="comment-input-item">
+        <ion-textarea placeholder="Escribe tu opinión aquí..." [(ngModel)]="commentText" rows="3"></ion-textarea>
+      </ion-item>
+      <ion-button expand="block" (click)="submitReview()" [disabled]="!tempRating">
+        Enviar Comentario
+      </ion-button>
+    </div>
+
+    <!-- Reviews List -->
+    <div class="comments-section ion-margin-top">
+      <h3>Reseñas de Compradores</h3>
+
+      <div *ngIf="reviews.length === 0" class="ion-text-center ion-padding">
+        <p>Aún no hay comentarios. ¡Sé el primero!</p>
+      </div>
+
+      <ion-list lines="full">
+        <ion-item *ngFor="let review of reviews">
+          <ion-avatar slot="start">
+            <img src="https://ionicframework.com/docs/img/demos/avatar.svg" />
+          </ion-avatar>
+          <ion-label>
+            <h3>{{ review.Nombre }} {{ review.Apellido_Paterno }}</h3>
+            <div class="review-stars">
+              <ion-icon *ngFor="let s of [1,2,3,4,5]" [name]="s <= review.Puntuacion ? 'star' : 'star-outline'"
+                color="warning" size="small"></ion-icon>
+              <span class="ion-margin-start date">{{ review.Fecha | date:'shortDate' }}</span>
+            </div>
+            <p class="comment-text ion-text-wrap" *ngIf="review.Comentario">{{ review.Comentario }}</p>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer *ngIf="product">
+  <ion-toolbar>
+    <ion-button expand="block" class="ion-margin" (click)="addToCart()" [disabled]="product.Stock <= 0">
+      Agregar al Carrito
+    </ion-button>
+  </ion-toolbar>
+</ion-footer>

@@ -1,0 +1,76 @@
+<div class="auth-container">
+    <div class="auth-card fade-in">
+        <div class="auth-header">
+            <h2>Únete a CampusMarket 🦎</h2>
+            <p>Crea tu cuenta para comprar y vender en la UTM</p>
+        </div>
+
+        <form (ngSubmit)="onRegister()" #registerForm="ngForm">
+
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" [(ngModel)]="user.Nombre" name="nombre" required placeholder="Ej. Juan">
+            </div>
+
+            <div class="form-row" style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Apellido Paterno</label>
+                    <input type="text" [(ngModel)]="user.Apellido_Paterno" name="apellidoPaterno" required
+                        placeholder="Pérez">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Apellido Materno</label>
+                    <input type="text" [(ngModel)]="user.Apellido_Materno" name="apellidoMaterno" placeholder="López">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Correo Institucional</label>
+                <input type="email" [(ngModel)]="user.Email" name="email" required placeholder="ejemplo@utm.edu.mx">
+            </div>
+
+            <div class="form-group">
+                <label>Teléfono (Opcional)</label>
+                <input type="tel" [(ngModel)]="user.Telefono" name="telefono" placeholder="953 123 4567">
+            </div>
+
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" [(ngModel)]="user.Contrasena" name="password" required placeholder="••••••••">
+            </div>
+
+            <div class="form-group">
+                <label>Confirmar Contraseña</label>
+                <input type="password" [(ngModel)]="confirmPassword" name="confirmPassword" required
+                    placeholder="••••••••">
+            </div>
+
+            <div class="form-group">
+                <label>Soy...</label>
+                <div class="role-selector">
+                    <label [class.selected]="user.Rol === 'Comprador'">
+                        <input type="radio" [(ngModel)]="user.Rol" name="rol" value="Comprador" hidden>
+                        🛒 Comprador
+                    </label>
+                    <label [class.selected]="user.Rol === 'Vendedor'">
+                        <input type="radio" [(ngModel)]="user.Rol" name="rol" value="Vendedor" hidden>
+                        🏪 Vendedor
+                    </label>
+                </div>
+            </div>
+
+            <div *ngIf="errorMessage" class="error-message">
+                {{ errorMessage }}
+            </div>
+
+            <button type="submit" class="btn-primary full-width" [disabled]="!registerForm.form.valid">
+                Registrarse
+            </button>
+
+            <div class="auth-footer">
+                <p>¿Ya tienes cuenta? <a routerLink="/login">Inicia Sesión</a></p>
+            </div>
+
+        </form>
+    </div>
+</div>

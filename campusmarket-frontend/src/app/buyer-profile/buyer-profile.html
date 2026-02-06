@@ -1,0 +1,112 @@
+<div class="page-wrapper">
+
+  <!-- BOTÓN DE NAVEGACIÓN -->
+  <div class="top-nav">
+    <a routerLink="/home" class="btn-back">
+      ← Volver al Catálogo
+    </a>
+  </div>
+
+  <div class="profile-container">
+
+    <!-- SIDEBAR IZQUIERDO (Avatar y Menú) -->
+    <aside class="profile-sidebar">
+      <div class="user-card">
+
+        <!-- AVATAR INTERACTIVO -->
+        <div class="avatar-wrapper">
+          <img [src]="profilePhotoUrl" class="avatar-img" alt="Foto de perfil">
+          <label class="camera-btn" title="Cambiar foto">
+            📷
+            <input type="file" (change)="onFileSelected($event)" hidden accept="image/*">
+          </label>
+        </div>
+
+        <h3>{{ user.nombre }}</h3>
+        <p class="email-text">{{ user.email }}</p>
+      </div>
+
+      <nav class="profile-nav">
+        <button [class.active]="activeTab === 'general'" (click)="switchTab('general')">
+          📝 Mis Datos Personales
+        </button>
+        <button [class.active]="activeTab === 'security'" (click)="switchTab('security')">
+          🔒 Seguridad y Contraseña
+        </button>
+      </nav>
+
+      <div class="theme-settings">
+        <h3>Apariencia</h3>
+        <button class="btn-secondary theme-toggle" (click)="toggleTheme()">
+          {{ currentTheme === 'light' ? '🌙 Activar Modo Oscuro' : '☀️ Desactivar Modo Oscuro' }}
+        </button>
+      </div>
+    </aside>
+
+    <!-- CONTENIDO DERECHO (Formularios) -->
+    <main class="profile-content">
+
+      <!-- PESTAÑA 1: DATOS GENERALES -->
+      <div *ngIf="activeTab === 'general'" class="fade-in">
+        <div class="section-header">
+          <h2>Información Personal</h2>
+          <p>Actualiza tu información de contacto para tus pedidos.</p>
+        </div>
+
+        <form [formGroup]="profileForm" (ngSubmit)="updateProfile()">
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label>Nombre Completo</label>
+              <input type="text" formControlName="nombre" placeholder="Tu nombre real">
+            </div>
+
+            <div class="form-group">
+              <label>Correo Institucional</label>
+              <input type="email" formControlName="email" class="disabled" title="No se puede cambiar">
+              <small>El correo no es modificable.</small>
+            </div>
+
+            <div class="form-group">
+              <label>Teléfono / Celular</label>
+              <input type="tel" formControlName="telefono" placeholder="10 dígitos">
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">💾 Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- PESTAÑA 2: SEGURIDAD -->
+      <div *ngIf="activeTab === 'security'" class="fade-in">
+        <div class="section-header">
+          <h2>Cambiar Contraseña</h2>
+          <p>Mantén tu cuenta segura cambiando tu contraseña periódicamente.</p>
+        </div>
+
+        <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+          <div class="form-group">
+            <label>Contraseña Actual</label>
+            <input type="password" formControlName="currentPassword" placeholder="••••••">
+          </div>
+
+          <div class="form-group">
+            <label>Nueva Contraseña</label>
+            <input type="password" formControlName="newPassword" placeholder="Mínimo 6 caracteres">
+          </div>
+
+          <div class="form-group">
+            <label>Confirmar Nueva Contraseña</label>
+            <input type="password" formControlName="confirmPassword" placeholder="Repite la contraseña">
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">🔐 Actualizar Contraseña</button>
+          </div>
+        </form>
+      </div>
+
+    </main>
+  </div>
+</div>

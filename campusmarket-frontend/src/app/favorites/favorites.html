@@ -1,0 +1,50 @@
+<div class="container" style="max-width: 1000px; margin: 40px auto; padding: 20px;">
+    <h2 style="color: #1e293b; margin-bottom: 30px;">❤️ Mis Productos Favoritos</h2>
+
+    <div *ngIf="loading" style="text-align: center; padding: 50px;">
+        Cargando tus favoritos...
+    </div>
+
+    <div *ngIf="!loading && favorites.length === 0"
+        style="text-align: center; padding: 60px; background: #f8fafc; border-radius: 20px; border: 2px dashed #e2e8f0;">
+        <p style="font-size: 1.2rem; color: #64748b;">Aún no tienes productos guardados.</p>
+        <a routerLink="/home" style="color: #22c55e; font-weight: bold; text-decoration: none;">Explorar el catálogo
+            →</a>
+    </div>
+
+    <div class="favorites-grid"
+        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px;">
+        <div *ngFor="let item of favorites"
+            style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); border: 1px solid #f1f5f9; position: relative; transition: transform 0.2s;">
+
+            <button (click)="removeFavorite(item.ID_Producto)"
+                style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; z-index: 10; font-size: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                ❌
+            </button>
+
+            <div style="height: 180px; overflow: hidden; background: #f1f5f9;">
+                <img [src]="'http://localhost:3000/uploads/' + item.Imagen_URL"
+                    style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;"
+                    [routerLink]="['/product', item.ID_Producto]">
+            </div>
+
+            <div style="padding: 20px;">
+                <span
+                    style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #10b981; font-weight: bold;">
+                    {{ item.Categoria_Nombre }}
+                </span>
+                <h3
+                    style="margin: 5px 0 10px 0; font-size: 1.1rem; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    {{ item.Nombre }}
+                </h3>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 1.25rem; font-weight: 800; color: #1e293b;">${{ item.Precio }}</span>
+                    <span [style.color]="item.Stock > 0 ? '#10b981' : '#ef4444'"
+                        style="font-size: 0.85rem; font-weight: bold; padding: 4px 10px; background: rgba(0,0,0,0.03); border-radius: 20px;">
+                        {{ item.Stock > 0 ? 'Disponible' : 'Sin Stock' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

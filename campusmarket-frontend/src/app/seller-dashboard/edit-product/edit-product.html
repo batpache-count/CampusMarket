@@ -1,0 +1,53 @@
+<div class="add-product-container">
+  <div class="header">
+    <h2>Editar Producto</h2>
+    <p>Actualiza la información de tu producto.</p>
+  </div>
+
+  <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+    
+    <div class="image-upload-section">
+      <div class="image-preview" [style.backgroundImage]="imagePreview ? 'url(' + imagePreview + ')' : ''">
+        <div *ngIf="!imagePreview" class="placeholder-text">
+          <span>📷</span>
+          <p>Sube una foto</p>
+        </div>
+      </div>
+      <input type="file" (change)="onFileSelected($event)" accept="image/*">
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group full-width">
+        <label>Nombre</label>
+        <input type="text" formControlName="name" placeholder="Ej. Burritos">
+      </div>
+
+      <div class="form-group full-width">
+        <label>Descripción</label>
+        <textarea formControlName="description" rows="2"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Precio ($)</label>
+        <input type="number" formControlName="price">
+      </div>
+
+      <div class="form-group">
+        <label>Stock</label>
+        <input type="number" formControlName="stock">
+      </div>
+
+      <div class="form-group full-width">
+        <label>Categoría</label>
+        <select formControlName="category">
+          <option *ngFor="let cat of categories" [value]="cat.ID_Categoria">{{ cat.Nombre }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn-secondary" (click)="cancel()">Cancelar</button>
+      <button type="submit" class="btn-primary" [disabled]="isSubmitting">Guardar Cambios</button>
+    </div>
+  </form>
+</div>

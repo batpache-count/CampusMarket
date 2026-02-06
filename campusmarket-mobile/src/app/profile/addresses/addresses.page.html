@@ -1,0 +1,85 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/profile"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Mis Direcciones</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="openAddModal()">
+        <ion-icon slot="icon-only" name="add"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div *ngIf="loading" class="ion-text-center ion-padding">
+    <ion-spinner></ion-spinner>
+    <p>Cargando direcciones...</p>
+  </div>
+
+  <div *ngIf="!loading && addresses.length === 0" class="ion-text-center ion-padding empty-state">
+    <ion-icon name="location-outline" style="font-size: 64px; color: var(--ion-color-medium);"></ion-icon>
+    <h3>No tienes direcciones guardadas</h3>
+    <p>Agrega una para agilizar tus compras.</p>
+    <ion-button (click)="openAddModal()" class="ion-margin-top">
+      Agregar Dirección
+    </ion-button>
+  </div>
+
+  <ion-list *ngIf="!loading && addresses.length > 0">
+    <ion-item-sliding *ngFor="let addr of addresses">
+      <ion-item>
+        <ion-icon name="home-outline" slot="start" color="primary"></ion-icon>
+        <ion-label>
+          <h3>{{ addr.Titulo }}</h3>
+          <p>{{ addr.Calle }}</p>
+          <p *ngIf="addr.Referencias" class="refs">Ref: {{ addr.Referencias }}</p>
+        </ion-label>
+      </ion-item>
+
+      <ion-item-options side="end">
+        <ion-item-option color="danger" (click)="deleteAddress(addr.ID_Direccion)">
+          <ion-icon slot="icon-only" name="trash"></ion-icon>
+        </ion-item-option>
+      </ion-item-options>
+    </ion-item-sliding>
+  </ion-list>
+
+  <!-- Add Address Modal -->
+  <ion-modal [isOpen]="isModalOpen" (didDismiss)="isModalOpen = false">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Nueva Dirección</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="isModalOpen = false">Cerrar</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <form (ngSubmit)="saveAddress()">
+          <ion-item>
+            <ion-label position="stacked">Título (ej: Mi Casa, Oficina)</ion-label>
+            <ion-input [(ngModel)]="newAddress.Titulo" name="titulo" required></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Dirección / Calle</ion-label>
+            <ion-input [(ngModel)]="newAddress.Calle" name="calle" required></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Referencias (opcional)</ion-label>
+            <ion-textarea [(ngModel)]="newAddress.Referencias" name="refs"></ion-textarea>
+          </ion-item>
+
+          <div class="ion-padding-top">
+            <ion-button expand="block" type="submit" [disabled]="saving">
+              <ion-spinner *ngIf="saving" name="crescent"></ion-spinner>
+              Guardar Dirección
+            </ion-button>
+          </div>
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>

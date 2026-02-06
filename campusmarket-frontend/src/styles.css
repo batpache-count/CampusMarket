@@ -1,0 +1,78 @@
+/* Importar fuente Poppins (Moderna y geométrica) */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
+
+body {
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+/* Botones Primarios (Ej. "Publicar", "Confirmar") */
+.btn-primary {
+  background-color: var(--primary-color);
+  color: #fff;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-color-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Botones Secundarios (Ej. "Cancelar", "Ver") */
+.btn-secondary {
+  background-color: var(--secondary-color);
+  color: var(--secondary-text-color);
+  padding: 12px 24px;
+  border: 1px solid var(--input-border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-secondary:hover {
+  background-color: var(--secondary-color-hover);
+  border-color: var(--input-border-color-hover);
+}
+
+/* Botones de Texto (Ej. "Eliminar") */
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--text-color-light);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease-in-out;
+}
+
+.btn-text:hover {
+  color: var(--text-color);
+}
+
+.btn-text-danger {
+  color: #ef4444;
+}
+
+.btn-text-danger:hover {
+  color: #b91c1c;
+}
+
+.btn-text-primary {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.btn-text-primary:hover {
+  color: var(--primary-color-hover);
+}

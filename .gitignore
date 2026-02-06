@@ -1,0 +1,15 @@
+# VS Code
+.vscode/
+
+# Node root (if any)
+node_modules/
+
+# Environment
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

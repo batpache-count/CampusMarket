@@ -1,0 +1,540 @@
+/* === LAYOUT GENERAL === */
+:host {
+  display: block;
+  height: 100vh;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.admin-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* === SIDEBAR (IZQUIERDA - MENU NEGRO) === */
+.sidebar {
+  width: 260px;
+  background-color: var(--card-background-color);
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--input-border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo-text {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.role-badge {
+  background: var(--input-background-color);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.user-mini-profile {
+  padding: 30px 20px;
+  text-align: center;
+  border-bottom: 1px solid var(--input-border-color);
+}
+
+.mini-avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 3px solid var(--input-background-color);
+  margin-bottom: 10px;
+  object-fit: cover;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sidebar-nav button {
+  background: transparent;
+  border: none;
+  color: var(--text-color-light);
+  padding: 12px 25px;
+  text-align: left;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s;
+  border-left: 4px solid transparent;
+}
+
+.sidebar-nav button:hover {
+  background-color: var(--input-background-color);
+  color: var(--text-color);
+}
+
+.sidebar-nav button.active {
+  background-color: var(--primary-color-hover);
+  color: white;
+  border-left: 4px solid var(--primary-color);
+}
+
+.badge {
+  background: #ef4444;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.sidebar-footer {
+  padding: 20px;
+  border-top: 1px solid var(--input-border-color);
+}
+
+
+/* === MAIN CONTENT (DERECHA) === */
+.main-content {
+  flex: 1;
+  padding: 40px;
+  overflow-y: auto;
+  /* Scroll solo en el contenido */
+}
+
+.content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.content-header h1 {
+  font-size: 2rem;
+  color: var(--text-color);
+  margin: 0;
+  font-weight: 800;
+}
+
+.order-meta .price {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-color);
+  margin-right: 15px;
+}
+
+/* === STATS CARDS === */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  background: var(--card-background-color);
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: transform 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-card .icon {
+  font-size: 2rem;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+.stat-card.earnings .icon {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.stat-card.orders .icon {
+  background: #ffedd5;
+  color: #ea580c;
+}
+
+.stat-card.products .icon {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.stat-card h3 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-color-light);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.stat-card .number {
+  margin: 5px 0 0;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-color);
+}
+
+/* === TABLES & LISTS === */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card-background-color);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.admin-table th {
+  background: var(--input-background-color);
+  padding: 15px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-color-light);
+  border-bottom: 2px solid var(--input-border-color);
+}
+
+.admin-table td {
+  padding: 15px;
+  border-bottom: 1px solid var(--input-border-color);
+  color: var(--text-color);
+}
+
+/* Tarjetas de Pedidos (Lista) */
+.order-card-row {
+  background: var(--card-background-color);
+  padding: 20px 25px;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--input-border-color);
+  transition: all 0.2s ease-in-out;
+}
+
+.order-card-row:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.order-info h4 {
+  margin: 0 0 5px;
+  font-size: 1.1rem;
+}
+
+.order-info .id {
+  font-size: 0.8rem;
+  color: var(--text-color-light);
+  font-weight: bold;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 30px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.status-badge.Pendiente {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fcd34d;
+}
+
+.status-badge.Entregado {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #6ee7b7;
+}
+
+.btn-action {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.btn-action:hover {
+  background: var(--primary-color-hover);
+}
+
+/* === PRODUCTS GRID === */
+.products-grid-modern {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 25px;
+}
+
+.product-card-modern {
+  background: var(--card-background-color);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--input-border-color);
+  transition: all 0.2s ease-in-out;
+}
+
+.product-card-modern:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.img-cover {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+.card-body h4 {
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+  color: var(--text-color);
+}
+
+.card-body .price {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--primary-color);
+  margin-bottom: 15px;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--input-border-color);
+  padding-top: 15px;
+  font-size: 0.9rem;
+  color: var(--text-color-light);
+}
+
+.btn-text-danger {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-text-danger:hover {
+  text-decoration: underline;
+}
+
+.btn-primary {
+  background: var(--primary-color);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+}
+
+.btn-primary:hover {
+  background: var(--primary-color-hover);
+}
+
+/* === CONFIGURACIÓN === */
+.settings-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+}
+
+.setting-card {
+  background: var(--card-background-color);
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.setting-card h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--input-border-color);
+  padding-bottom: 15px;
+  color: var(--text-color);
+}
+
+.avatar-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.large-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--input-border-color);
+}
+
+.btn-outline {
+  border: 2px solid var(--input-border-color);
+  background: var(--card-background-color);
+  color: var(--text-color);
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-outline:hover {
+  border-color: var(--input-border-color-hover);
+  background: var(--secondary-color-hover);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--input-border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: var(--input-background-color);
+  color: var(--text-color);
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  ring: 2px solid var(--primary-color-hover);
+}
+
+.card-footer-actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: color 0.2s ease-in-out;
+  padding: 0;
+  margin: 0;
+}
+
+.card-footer-actions .btn-text-primary {
+  color: var(--primary-color);
+  margin-right: 10px;
+}
+
+.card-footer-actions .btn-text-primary:hover {
+  color: var(--primary-color-hover);
+}
+
+/* === NOTIFICACIONES === */
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.notification-card {
+  background: var(--card-background-color);
+  padding: 20px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border: 1px solid var(--input-border-color);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.notification-card:hover {
+  transform: translateX(5px);
+  border-color: var(--primary-color);
+}
+
+.notification-card.unread {
+  background: var(--input-background-color);
+  /* Un poco más oscuro/claro para destacar */
+  border-left: 4px solid var(--primary-color);
+}
+
+.notification-card .icon {
+  font-size: 1.5rem;
+  background: var(--secondary-color);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-card .info {
+  flex: 1;
+}
+
+.notification-card .message {
+  margin: 0 0 5px;
+  font-size: 1rem;
+  color: var(--text-color);
+}
+
+.notification-card .date {
+  font-size: 0.8rem;
+  color: var(--text-color-light);
+}
+
+.notification-card .indicator {
+  width: 10px;
+  height: 10px;
+  background: #ef4444;
+  border-radius: 50%;
+}

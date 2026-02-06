@@ -1,0 +1,75 @@
+<ion-header [translucent]="true" class="main-header">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button color="light"></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="app-title">
+      CampusMarket
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="goToCart()" color="light">
+        <ion-icon slot="icon-only" name="cart-outline"></ion-icon>
+        <span *ngIf="cartCount > 0" class="cart-badge-dot"></span>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <ion-toolbar color="primary" class="search-toolbar">
+    <div class="search-container">
+      <ion-searchbar placeholder="¿Qué buscas hoy?" (ionInput)="onSearchChange($event)" search-icon="search-outline"
+        class="custom-searchbar"></ion-searchbar>
+    </div>
+
+    <!-- Category Chips -->
+    <div class="categories-container">
+      <ion-chip [outline]="selectedCategory !== ''" [color]="selectedCategory === '' ? 'primary' : 'medium'"
+        (click)="selectCategory('')">
+        <ion-label>Todos</ion-label>
+      </ion-chip>
+      <ion-chip *ngFor="let cat of categories" [outline]="selectedCategory !== cat.Nombre"
+        [color]="selectedCategory === cat.Nombre ? 'primary' : 'medium'" (click)="selectCategory(cat.Nombre)">
+        <ion-label>{{ cat.Nombre }}</ion-label>
+      </ion-chip>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding-top">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">CampusMarket</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-grid>
+    <ion-row>
+      <ion-col size="6" size-md="4" size-lg="3" *ngFor="let product of filteredProducts">
+        <ion-card class="product-card" [class.out-of-stock-card]="product.Stock <= 0"
+          [routerLink]="['/product-detail', product.ID_Producto]">
+          <div class="image-container">
+            <img [src]="apiUrl + '/uploads/' + product.Imagen_URL" alt="{{ product.Nombre }}"
+              onerror="this.src='assets/placeholder.png'" />
+            <ion-badge *ngIf="product.Stock <= 0" color="dark" class="stock-badge">AGOTADO</ion-badge>
+            <ion-badge *ngIf="product.Stock > 0" color="success" class="stock-badge">NUEVO</ion-badge>
+          </div>
+          <ion-card-header>
+            <ion-card-subtitle>{{ product.Categoria }}</ion-card-subtitle>
+            <ion-card-title>{{ product.Nombre }}</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <h3 class="price">{{ product.Precio | currency }}</h3>
+            <ion-button expand="block" size="small" [color]="product.Stock > 0 ? 'primary' : 'danger'"
+              [disabled]="product.Stock <= 0" (click)="addToCart(product); $event.stopPropagation()">
+              {{ product.Stock > 0 ? 'Comprar' : 'Agotado' }}
+            </ion-button>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <div *ngIf="products.length === 0" class="ion-text-center ion-padding">
+    <p>Cargando productos...</p>
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+</ion-content>

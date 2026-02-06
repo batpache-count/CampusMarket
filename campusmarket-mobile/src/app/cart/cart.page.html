@@ -1,0 +1,64 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Mi Carrito</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <ion-list *ngIf="cartItems.length > 0">
+    <ion-item-sliding *ngFor="let item of cartItems">
+      <ion-item lines="full">
+        <ion-thumbnail slot="start">
+          <img [src]="apiUrl + '/uploads/' + item.image" onerror="this.src='assets/placeholder.png'" />
+        </ion-thumbnail>
+        <ion-label>
+          <h2>{{ item.name }}</h2>
+          <p>{{ item.price | currency }} x {{ item.quantity }}</p>
+          <h3>Total: {{ item.price * item.quantity | currency }}</h3>
+        </ion-label>
+        <div slot="end" class="quantity-controls">
+          <ion-button fill="clear" size="small" (click)="decreaseQuantity(item)">
+            <ion-icon name="remove-circle-outline"></ion-icon>
+          </ion-button>
+          <span>{{ item.quantity }}</span>
+          <ion-button fill="clear" size="small" (click)="increaseQuantity(item)">
+            <ion-icon name="add-circle-outline"></ion-icon>
+          </ion-button>
+        </div>
+      </ion-item>
+
+      <ion-item-options side="end">
+        <ion-item-option color="danger" (click)="removeFromCart(item)">
+          <ion-icon slot="icon-only" name="trash"></ion-icon>
+        </ion-item-option>
+      </ion-item-options>
+    </ion-item-sliding>
+  </ion-list>
+
+  <div *ngIf="cartItems.length === 0" class="empty-cart">
+    <ion-icon name="cart-outline" size="large"></ion-icon>
+    <p>Tu carrito está vacío</p>
+    <ion-button routerLink="/home" fill="outline">Ir a comprar</ion-button>
+  </div>
+</ion-content>
+
+<ion-footer *ngIf="cartItems.length > 0">
+  <ion-toolbar>
+    <ion-grid>
+      <ion-row class="ion-align-items-center">
+        <ion-col size="6">
+          <div class="total-label">Total:</div>
+          <div class="total-amount">{{ total | currency }}</div>
+        </ion-col>
+        <ion-col size="6">
+          <ion-button expand="block" (click)="checkout()">
+            Pagar
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-footer>

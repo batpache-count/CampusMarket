@@ -1,0 +1,122 @@
+<div class="cart-container">
+
+  <!-- HEADER -->
+  <div class="cart-header">
+    <a routerLink="/home" class="back-link">← Seguir Comprando</a>
+    <h1><span class="cart-icon">🛒</span> Tu Carrito</h1>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div *ngIf="cartItems.length === 0" class="empty-state">
+    <div class="empty-icon">🍔</div>
+    <h2>Tu carrito está vacío</h2>
+    <p>¿Hambre? ¡Explora nuestro delicioso catálogo!</p>
+    <a routerLink="/home" class="btn-primary">Ir al Catálogo</a>
+  </div>
+
+  <!-- CART CONTENT -->
+  <div *ngIf="cartItems.length > 0" class="cart-grid">
+
+    <!-- LEFT COLUMN: ITEMS -->
+    <div class="cart-items">
+
+      <div class="actions-bar">
+        <span>{{ cartItems.length }} producto(s)</span>
+        <button (click)="clearCart()" class="btn-text-danger">Vaciar Carrito</button>
+      </div>
+
+      <div *ngFor="let item of cartItems" class="item-card">
+        <img [src]="item.image ? 'http://localhost:3000/uploads/' + item.image : 'assets/placeholder.png'"
+          class="item-img" alt="{{ item.name }}" onerror="this.src='https://placehold.co/100x100?text=Sin+Foto'"
+          width="100" height="100" loading="lazy">
+
+        <div class="item-info">
+          <div class="seller">Vendido por: {{ item.seller }}</div>
+          <h3>{{ item.name }}</h3>
+          <div class="price">${{ item.price }}</div>
+        </div>
+
+        <div class="item-controls" style="display: flex; align-items: center; gap: 10px;">
+          <div class="quantity-selector">
+            <button (click)="decreaseQuantity(item.id)">-</button>
+            <span>{{ item.quantity }}</span>
+            <button (click)="increaseQuantity(item.id)" [disabled]="item.Stock === 0"
+              [title]="item.Stock === 0 ? 'No hay más stock disponible' : 'Agregar más'">+</button>
+          </div>
+
+          <button (click)="removeItem(item.id)" class="btn-remove" title="Eliminar producto">
+            🗑️
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: SUMMARY & CHECKOUT -->
+    <div class="summary-card">
+      <h3>Resumen del Pedido</h3>
+
+      <div class="summary-row">
+        <span>Subtotal</span>
+        <span>${{ total }}</span>
+      </div>
+      <div class="summary-row">
+        <span>Envío / Entrega</span>
+        <span>Gratis</span>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="summary-row total">
+        <span>Total a Pagar</span>
+        <span>${{ total }}</span>
+      </div>
+
+      <!-- CHECKOUT FORM (Only visible in checkout mode) -->
+      <div *ngIf="isCheckoutMode" class="checkout-form fade-in">
+        <h4 style="margin-top: 0;">📍 Datos de Entrega</h4>
+
+        <div class="form-group">
+          <label>Lugar de encuentro</label>
+          <select [(ngModel)]="deliveryData.locationId">
+            <option [ngValue]="null" disabled>Selecciona un lugar</option>
+            <option *ngFor="let loc of locations" [value]="loc.ID_Ubicacion">
+              {{ loc.Nombre_Ubicacion }} - {{ loc.Descripcion }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Hora de Encuentro</label>
+          <input type="time" [(ngModel)]="deliveryData.time">
+        </div>
+
+        <p class="disclaimer">* La fecha será hoy automáticamente.</p>
+
+        <!-- PAYPAL BUTTON CONTAINER -->
+        <div id="paypal-button-container" style="margin-top: 15px;"></div>
+
+        <!-- MERCADO PAGO BUTTON -->
+        <button (click)="payWithMercadoPago()" class="btn-mp"
+          style="margin-top: 10px; width: 100%; background-color: #009ee3; color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span>Pagar con Mercado Pago</span>
+          <img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.18.9/mercadolibre/logo__small.png"
+            alt="MP" style="height: 20px; filter: brightness(0) invert(1);">
+        </button>
+
+        <button (click)="cancelCheckout()" class="btn-cancel" style="margin-top: 10px;">
+          Cancelar / Volver
+        </button>
+      </div>
+
+      <!-- INITIAL CHECKOUT BUTTON -->
+      <button *ngIf="!isCheckoutMode" (click)="enableCheckout()" class="btn-checkout">
+        Proceder al Pago
+      </button>
+
+      <p class="disclaimer">
+        🔒 Pago 100% seguro vía PayPal o Efectivo (acordar con vendedor).
+      </p>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,45 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/orders/order-list"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Detalle del Pedido</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+
+  <div *ngIf="loading" class="ion-text-center ion-padding">
+    <ion-spinner></ion-spinner>
+    <p>Cargando detalles...</p>
+  </div>
+
+  <div *ngIf="!loading && orderDetails.length > 0">
+    <ion-list>
+      <ion-list-header>
+        <ion-label>Productos</ion-label>
+      </ion-list-header>
+
+      <ion-item *ngFor="let item of orderDetails">
+        <ion-thumbnail slot="start">
+          <!-- Placeholder or actual image -->
+          <img alt="Product" src="assets/icon/favicon.png" />
+        </ion-thumbnail>
+        <ion-label>
+          <h2>{{ item.Nombre_Producto }}</h2>
+          <p>Cantidad: {{ item.Cantidad }}</p>
+          <p>Precio Unitario: {{ item.Precio_Unitario | currency }}</p>
+        </ion-label>
+        <ion-note slot="end" color="primary">
+          {{ (item.Precio_Unitario * item.Cantidad) | currency }}
+        </ion-note>
+      </ion-item>
+    </ion-list>
+
+    <!-- Here we could add a total sum, though backend provides it in the order list object, not details array directly currently -->
+  </div>
+
+  <div *ngIf="!loading && orderDetails.length === 0" class="ion-text-center ion-padding">
+    <p>No se encontraron detalles para este pedido.</p>
+  </div>
+</ion-content>

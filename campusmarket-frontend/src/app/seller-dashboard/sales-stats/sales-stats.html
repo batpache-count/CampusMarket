@@ -1,0 +1,23 @@
+<div class="stats-container">
+  <div class="filters">
+    <select (change)="onTimeRangeChange($event)">
+      <option value="day">Hoy</option>
+      <option value="week">Esta semana</option>
+      <option value="month">Este mes</option>
+    </select>
+  </div>
+  <div class="charts">
+    <div class="chart">
+      <h3>Ventas totales</h3>
+      <canvas id="salesChart"></canvas>
+    </div>
+    <div class="chart">
+      <h3>Productos más vendidos</h3>
+      <canvas id="topProductsChart"></canvas>
+    </div>
+    <div class="chart">
+      <h3>Horas pico de ventas</h3>
+      <canvas id="peakHoursChart"></canvas>
+    </div>
+  </div>
+</div>

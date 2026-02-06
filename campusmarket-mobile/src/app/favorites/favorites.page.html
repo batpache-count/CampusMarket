@@ -1,0 +1,41 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Mis Favoritos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div *ngIf="loading" class="ion-text-center ion-padding">
+    <ion-spinner></ion-spinner>
+  </div>
+
+  <div *ngIf="!loading && favorites.length === 0" class="empty-state ion-text-center">
+    <ion-icon name="heart-dislike-outline" size="large" color="medium"></ion-icon>
+    <h3>Aún no tienes favoritos</h3>
+    <p>Agrega productos que te interesen para recibier avisos cuando vuelvan a estar disponibles.</p>
+    <ion-button routerLink="/home" fill="clear">Ir al catálogo</ion-button>
+  </div>
+
+  <ion-grid *ngIf="favorites.length > 0">
+    <ion-row>
+      <ion-col size="6" *ngFor="let prod of favorites">
+        <ion-card class="product-card" (click)="goToDetail(prod.ID_Producto)">
+          <img [src]="'http://localhost:3000/uploads/' + prod.Imagen_URL" />
+          <ion-card-header>
+            <ion-card-subtitle>{{ prod.Nombre_Tienda }}</ion-card-subtitle>
+            <ion-card-title>{{ prod.Nombre }}</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <p class="price">{{ prod.Precio | currency }}</p>
+            <ion-badge [color]="prod.Stock > 0 ? 'success' : 'danger'">
+              {{ prod.Stock > 0 ? 'Disponible' : 'Sin Stock' }}
+            </ion-badge>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>

@@ -1,0 +1,34 @@
+<div class="auth-container">
+  <div class="auth-card fade-in">
+    <div class="auth-header">
+      <h2>Bienvenido de nuevo 👋</h2>
+      <p>Ingresa a tu cuenta de CampusMarket</p>
+    </div>
+
+    <form (ngSubmit)="onLogin()" #loginForm="ngForm">
+
+      <div class="form-group">
+        <label>Correo Institucional / Personal</label>
+        <input type="email" [(ngModel)]="email" name="email" required placeholder="ejemplo@utm.edu.mx">
+      </div>
+
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" [(ngModel)]="password" name="password" required placeholder="••••••••">
+      </div>
+
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+
+      <button type="submit" class="btn-primary full-width" [disabled]="!loginForm.form.valid">
+        Iniciar Sesión
+      </button>
+
+      <div class="auth-footer">
+        <p>¿No tienes cuenta? <a routerLink="/register">Regístrate aquí</a></p>
+      </div>
+
+    </form>
+  </div>
+</div>

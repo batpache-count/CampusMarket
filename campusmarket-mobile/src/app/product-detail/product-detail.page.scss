@@ -1,0 +1,87 @@
+.image-container {
+    width: 100%;
+    height: 250px;
+    background-color: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    border-radius: 12px;
+    overflow: hidden;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+}
+
+.product-info {
+    .price {
+        font-size: 1.8rem;
+        color: var(--ion-color-primary);
+        font-weight: 800;
+        margin: 10px 0;
+    }
+}
+
+.write-review-section {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px solid #e2e8f0;
+
+    h3 {
+        margin-top: 0;
+        margin-bottom: 15px;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .star-rating {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+        justify-content: center;
+
+        ion-icon {
+            font-size: 32px;
+        }
+    }
+
+    .comment-input-item {
+        --background: #ffffff;
+        --border-radius: 12px;
+        --padding-start: 12px;
+        margin-bottom: 15px;
+        border: 1px solid #cbd5e1;
+
+        ion-textarea {
+            --padding-top: 10px;
+        }
+    }
+}
+
+:host-context(body.dark) {
+    .write-review-section {
+        background: #1e293b;
+        border-color: #334155;
+
+        h3 {
+            color: #f1f5f9;
+        }
+
+        .comment-input-item {
+            --background: #0f172a;
+            border-color: #475569;
+        }
+    }
+}
+
+.comments-section {
+    h3 {
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+}

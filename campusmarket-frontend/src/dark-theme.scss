@@ -1,0 +1,31 @@
+body.dark {
+  --background-color: #111827;
+  --text-color: #f3f4f6;
+  --card-background-color: #1f2937;
+  --input-background-color: #374151;
+  --input-border-color: #4b5563;
+  --primary-color: #3b82f6;
+  --primary-color-hover: #1d4ed8;
+  --secondary-color: #374151;
+  --secondary-color-hover: #4b5563;
+  --secondary-text-color: #f3f4f6;
+  --input-border-color-hover: #d1d5db;
+  --text-color-light: #9ca3af;
+  --image-blend-mode: normal;
+}
+
+body.light {
+  --background-color: #f8fafc;
+  --text-color: #111827;
+  --card-background-color: #fff;
+  --input-background-color: #fff;
+  --input-border-color: #d1d5db;
+  --primary-color: #111827;
+  --primary-color-hover: #374151;
+  --secondary-color: #f3f4f6;
+  --secondary-color-hover: #e5e7eb;
+  --secondary-text-color: #111827;
+  --input-border-color-hover: #d1d5db;
+  --text-color-light: #4b5563;
+  --image-blend-mode: multiply;
+}

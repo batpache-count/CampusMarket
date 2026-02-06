@@ -1,0 +1,37 @@
+.login-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+    background-color: var(--ion-background-color);
+}
+
+.logo-container {
+    text-align: center;
+    margin-bottom: 2rem;
+
+    h2 {
+        font-weight: bold;
+        color: var(--ion-color-primary);
+    }
+
+    p {
+        color: var(--ion-color-medium);
+    }
+}
+
+ion-card {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    background-color: var(--ion-card-background);
+}
+
+ion-item {
+    --background: transparent;
+    --color: var(--ion-text-color);
+}
+
+ion-input {
+    --color: var(--ion-text-color);
+    --placeholder-color: var(--ion-color-medium);
+}

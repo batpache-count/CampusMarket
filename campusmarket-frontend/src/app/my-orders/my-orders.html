@@ -1,0 +1,52 @@
+<div class="orders-container">
+
+  <div class="header-nav">
+    <a routerLink="/home" class="btn-back">← Volver al Catálogo</a>
+    <h1>📦 Mis Pedidos</h1>
+  </div>
+
+  <div *ngIf="loading" class="loading">Cargando historial...</div>
+
+  <div *ngIf="!loading && orders.length === 0" class="empty-state">
+    <p>Aún no has realizado ninguna compra.</p>
+    <a routerLink="/home" class="btn-shop">Ir a comprar</a>
+  </div>
+
+  <div class="orders-list" *ngIf="orders.length > 0">
+    <div *ngFor="let order of orders" class="order-card">
+      <div class="order-header">
+        <span class="order-id">Pedido #{{ order.ID_Pedido }}</span>
+        <span class="order-date">{{ order.Fecha_Entrega }}</span>
+        <span class="status-badge" [ngClass]="order.Estado">{{ order.Estado }}</span>
+      </div>
+
+      <div class="order-body">
+        <div class="info-row">
+          <span>📍 Entrega:</span>
+          <strong>{{ order.Lugar_Entrega || order.Nombre_Ubicacion }}</strong>
+        </div>
+        <div class="info-row">
+          <span>⏰ Hora:</span>
+          <strong>{{ order.Hora_Entrega }}</strong>
+        </div>
+
+        <div class="product-details">
+          <h5 style="margin-top: 1rem; margin-bottom: 0.5rem; font-weight: bold;">Productos:</h5>
+          <ul style="list-style: none; padding-left: 0;">
+            <li *ngFor="let item of order.items"
+              style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+              <span>{{ item.Nombre_Producto }} (x{{ item.Cantidad }})</span>
+              <span>${{ item.Precio_Unitario * item.Cantidad }}</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="info-row total-row">
+          <span>Total:</span>
+          <span class="total-price">${{ order.Precio_Total }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

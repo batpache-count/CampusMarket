@@ -1,0 +1,322 @@
+<div class="admin-layout">
+
+  <!-- SIDEBAR IZQUIERDA -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-text">CampusMarket</div>
+      <span class="role-badge">Vendedor</span>
+    </div>
+
+    <div class="user-mini-profile">
+      <label class="avatar-label" style="cursor: pointer;" title="Cambiar foto">
+        <img [src]="profilePhotoUrl" class="mini-avatar" alt="Perfil">
+        <input type="file" (change)="onFileSelected($event)" hidden accept="image/*">
+      </label>
+      <p>Hola, {{ sellerName }}</p>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button [class.active]="currentTab === 'dashboard'" (click)="switchTab('dashboard')">
+        📊 Resumen
+      </button>
+      <button [class.active]="currentTab === 'stats'" (click)="switchTab('stats')">
+        📈 Gráficas
+      </button>
+      <button [class.active]="currentTab === 'orders'" (click)="switchTab('orders')">
+        📦 Pedidos <span class="badge" *ngIf="pendingOrdersCount > 0">{{ pendingOrdersCount }}</span>
+      </button>
+      <button [class.active]="currentTab === 'notifications'" (click)="switchTab('notifications')">
+        🔔 Notificaciones <span class="badge" *ngIf="unreadNotificationsCount > 0">{{ unreadNotificationsCount }}</span>
+      </button>
+      <button [class.active]="currentTab === 'products'" (click)="switchTab('products')">
+        🍔 Mis Productos
+      </button>
+      <button [class.active]="currentTab === 'locations'" (click)="switchTab('locations')">
+        📍 Ubicaciones
+      </button>
+      <button [class.active]="currentTab === 'settings'" (click)="switchTab('settings')">
+        ⚙️ Configuración
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button (click)="logout()" class="btn-secondary">
+        🚪 Cerrar Sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- CONTENIDO DERECHA -->
+  <main class="main-content">
+
+    <!-- VISTA: DASHBOARD / ESTADÍSTICAS -->
+    <section *ngIf="currentTab === 'dashboard'" class="fade-in">
+      <header class="content-header">
+        <h1>Resumen General</h1>
+        <p class="date">{{ today | date:'fullDate' }}</p>
+      </header>
+
+      <div class="stats-grid">
+        <div class="stat-card earnings">
+          <div class="icon">💰</div>
+          <div class="info">
+            <h3>Ventas Totales</h3>
+            <p class="number">${{ totalEarnings }}</p>
+          </div>
+        </div>
+
+        <div class="stat-card orders">
+          <div class="icon">🔔</div>
+          <div class="info">
+            <h3>Pedidos Pendientes</h3>
+            <p class="number">{{ pendingOrdersCount }}</p>
+          </div>
+        </div>
+
+        <div class="stat-card products">
+          <div class="icon">🍔</div>
+          <div class="info">
+            <h3>Productos Activos</h3>
+            <p class="number">{{ products.length }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="recent-activity">
+        <h2>Últimos Pedidos</h2>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Producto</th>
+                <th>Total</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let order of orders.slice(0, 5)">
+                <td>#{{ order.id || order.ID_Pedido }}</td>
+                <td>
+                  <div *ngFor="let item of order.items">
+                    <span>{{ item.Nombre_Producto }} (x{{ item.Cantidad }})</span>
+                  </div>
+                </td>
+                <td>${{ order.Precio_Total }}</td>
+                <td><span class="status-badge" [ngClass]="order.Estado_Pedido">{{ order.Estado_Pedido }}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA: GRÁFICAS -->
+    <section *ngIf="currentTab === 'stats'" class="fade-in">
+      <app-sales-stats></app-sales-stats>
+    </section>
+
+    <!-- VISTA: PEDIDOS -->
+    <section *ngIf="currentTab === 'orders'" class="fade-in">
+      <header class="content-header">
+        <h1>Gestión de Pedidos</h1>
+      </header>
+
+      <div class="orders-list">
+        <div *ngIf="orders.length === 0" class="empty-state">
+          <p>No hay pedidos pendientes.</p>
+        </div>
+        <div *ngFor="let order of orders" class="order-card-row">
+          <div class="order-info">
+            <span class="id">#{{ order.id || order.ID_Pedido }}</span>
+            <div *ngFor="let item of order.items">
+              <h4>{{ item.Nombre_Producto }} (x{{ item.Cantidad }})</h4>
+            </div>
+            <p>Cliente: {{ order.buyerName || 'Alumno' }}</p>
+          </div>
+          <div class="order-meta">
+            <span class="price">${{ order.Precio_Total }}</span>
+            <span class="status-badge" [ngClass]="order.Estado_Pedido">{{ order.Estado_Pedido }}</span>
+
+            <!-- Payment Details -->
+            <div class="payment-info" style="margin-top: 5px; font-size: 0.85rem; color: #666;">
+              <p style="margin: 0;">💳 <strong>{{ order.Metodo_Pago || 'Efectivo' }}</strong></p>
+              <p *ngIf="order.PayPal_Transaction_ID" style="margin: 0; font-family: monospace; color: #2563eb;">
+                ID: {{ order.PayPal_Transaction_ID }}
+              </p>
+            </div>
+          </div>
+          <div class="order-actions" *ngIf="order.Estado_Pedido !== 'Entregado' && order.Estado_Pedido !== 'Cancelado'">
+            <select #statusSelect (change)="changeStatus(order, statusSelect.value)">
+              <option [value]="order.Estado_Pedido" disabled selected>{{ order.Estado_Pedido }}</option>
+              <option value="En preparacion">En preparación</option>
+              <option value="Entregado">Entregado</option>
+              <option value="Cancelado">Cancelado</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA: NOTIFICACIONES -->
+    <section *ngIf="currentTab === 'notifications'" class="fade-in">
+      <header class="content-header">
+        <h1>Notificaciones</h1>
+        <button class="btn-secondary" (click)="markAllAsRead()" *ngIf="unreadNotificationsCount > 0">Marcar todo como
+          leído</button>
+      </header>
+
+      <div class="notifications-list">
+        <div *ngIf="notifications.length === 0" class="empty-state">
+          <p>No tienes notificaciones nuevas.</p>
+        </div>
+        <div *ngFor="let notif of notifications" class="notification-card" [class.unread]="!notif.Leido"
+          (click)="markAsRead(notif)">
+          <div class="icon">
+            {{ notif.Tipo === 'VENTA' ? '💰' : notif.Tipo === 'AGOTADO' ? '❌' : '⚠️' }}
+          </div>
+          <div class="info">
+            <p class="message">{{ notif.Mensaje }}</p>
+            <span class="date">{{ notif.Fecha | date:'short' }}</span>
+          </div>
+          <div class="indicator" *ngIf="!notif.Leido"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA: PRODUCTOS -->
+    <section *ngIf="currentTab === 'products'" class="fade-in">
+      <header class="content-header">
+        <h1>Inventario</h1>
+        <a routerLink="/seller/add-product" class="btn-primary">+ Nuevo Producto</a>
+      </header>
+
+      <div class="products-grid-modern">
+        <div *ngIf="products.length === 0" class="empty-state">
+          <p>No has publicado productos. ¡Empieza ahora!</p>
+        </div>
+
+        <div *ngFor="let product of products" class="product-card-modern">
+
+          <!-- IMAGEN DEL PRODUCTO -->
+          <div class="img-cover-container"
+            style="height: 180px; overflow: hidden; background-color: #f0f0f0; position: relative;">
+
+            <!-- Usamos fotoFinal que calculamos en el TS -->
+            <img
+              [src]="product.fotoFinal ? 'http://localhost:3000/uploads/' + product.fotoFinal : 'assets/placeholder.svg'"
+              alt="{{ product.Nombre || product.name }}"
+              style="width: 100%; height: 100%; object-fit: cover; display: block;"
+              onerror="this.src='assets/placeholder.svg'">
+
+          </div>
+
+          <div class="card-body">
+            <h4>{{ product.Nombre || product.name }}</h4>
+            <p class="price">${{ product.Precio || product.price }}</p>
+
+            <div class="card-footer">
+              <span>Stock: {{ product.Stock || product.stock }}</span>
+              <div class="card-footer-actions">
+                <button (click)="editProduct(product.ID_Producto || product.id)"
+                  class="btn-text-primary">Editar</button>
+                <button (click)="deleteProduct(product.ID_Producto || product.id)"
+                  class="btn-text-danger">Eliminar</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA: UBICACIONES -->
+    <section *ngIf="currentTab === 'locations'" class="fade-in">
+      <header class="content-header">
+        <h1>Lugares de Encuentro</h1>
+      </header>
+
+      <div class="settings-container">
+        <!-- LISTA DE UBICACIONES -->
+        <div class="setting-card">
+          <h3>Mis Puntos de Entrega</h3>
+          <div *ngIf="locations.length === 0" class="empty-state">
+            <p>No tienes lugares registrados. Agrega uno para que tus clientes sepan dónde entregas.</p>
+          </div>
+          <ul class="location-list" style="list-style: none; padding: 0;">
+            <li *ngFor="let loc of locations"
+              style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+              <div>
+                <strong>{{ loc.Nombre }}</strong>
+                <p style="margin: 0; font-size: 0.9rem; color: #aaa;">{{ loc.Descripcion }}</p>
+              </div>
+              <button class="btn-text-danger" (click)="deleteLocation(loc.ID_Ubicacion)">Eliminar</button>
+            </li>
+          </ul>
+        </div>
+
+        <!-- FORMULARIO AGREGAR -->
+        <div class="setting-card">
+          <h3>Agregar Nuevo Lugar</h3>
+          <form (ngSubmit)="addLocation()" #locForm="ngForm">
+            <div class="form-group">
+              <label>Nombre del Lugar</label>
+              <input type="text" [(ngModel)]="newLocation.nombre" name="locName" required
+                placeholder="Ej. Biblioteca, Edificio H...">
+            </div>
+            <div class="form-group">
+              <label>Descripción / Referencia (Opcional)</label>
+              <input type="text" [(ngModel)]="newLocation.descripcion" name="locDesc"
+                placeholder="Ej. Frente a las escaleras">
+            </div>
+            <button type="submit" class="btn-primary" [disabled]="!locForm.form.valid">Agregar Lugar</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA: CONFIGURACIÓN -->
+    <section *ngIf="currentTab === 'settings'" class="fade-in">
+      <header class="content-header">
+        <h1>Configuración de Cuenta</h1>
+      </header>
+
+      <div class="settings-container">
+        <div class="setting-card">
+          <h3>Foto de Perfil</h3>
+          <div class="avatar-upload">
+            <img [src]="profilePhotoUrl" class="large-avatar">
+            <input type="file" (change)="onFileSelected($event)" hidden #fileInput accept="image/*">
+            <button type="button" class="btn-secondary" (click)="fileInput.click()">
+              Cambiar Foto
+            </button>
+          </div>
+        </div>
+
+        <div class="setting-card">
+          <h3>Modo Oscuro</h3>
+          <button class="btn-secondary theme-toggle" (click)="toggleTheme()">
+            {{ currentTheme === 'light' ? '🌙 Activar Modo Oscuro' : '☀️ Desactivar Modo Oscuro' }}
+          </button>
+        </div>
+
+        <div class="setting-card">
+          <h3>Datos de la Tienda</h3>
+          <form #shopForm="ngForm" (submit)="updateShopInfo(shopForm.value)">
+            <div class="form-group">
+              <label>Nombre de la Tienda</label>
+              <input type="text" name="nombre_tienda" placeholder="Ej. Cafetería Central" [(ngModel)]="sellerName">
+            </div>
+            <div class="form-group">
+              <label>Descripción</label>
+              <textarea name="descripcion_tienda" rows="3" placeholder="Vendemos lo mejor..."
+                [(ngModel)]="sellerDescription"></textarea>
+            </div>
+            <button type="submit" class="btn-primary">Guardar Cambios</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>

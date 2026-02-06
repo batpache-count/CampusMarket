@@ -1,0 +1,54 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/profile"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Mis Pedidos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="loadOrders($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div *ngIf="loading" class="ion-text-center ion-padding">
+    <ion-spinner></ion-spinner>
+    <p>Cargando pedidos...</p>
+  </div>
+
+  <div *ngIf="!loading && orders.length === 0" class="ion-text-center ion-padding empty-state">
+    <ion-icon name="cart-outline" class="empty-icon"></ion-icon>
+    <h3>No tienes pedidos aún</h3>
+    <p>Tus compras aparecerán aquí</p>
+    <ion-button routerLink="/home" expand="block" class="ion-margin-top">
+      Ir a comprar
+    </ion-button>
+  </div>
+
+  <ion-list *ngIf="!loading && orders.length > 0">
+    <ion-card *ngFor="let order of orders" (click)="viewDetail(order.ID_Pedido)" button>
+      <ion-card-header>
+        <ion-item lines="none" class="ion-no-padding">
+          <ion-icon name="bag-handle-outline" slot="start" color="primary"></ion-icon>
+          <ion-label>
+            <h2>Pedido #{{ order.ID_Pedido }}</h2>
+            <p>{{ order.Fecha_Creacion | date:'medium' }}</p>
+          </ion-label>
+          <ion-badge [color]="getStatusColor(order.Estado_Pedido)" slot="end">
+            {{ order.Estado_Pedido }}
+          </ion-badge>
+        </ion-item>
+      </ion-card-header>
+      <ion-card-content>
+        <p class="vendor-name">
+          <ion-icon name="storefront-outline"></ion-icon> {{ order.Nombre_Vendedor }}
+        </p>
+        <div class="price-container">
+          <span class="label">Total:</span>
+          <span class="price">{{ order.Precio_Total | currency }}</span>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </ion-list>
+</ion-content>
