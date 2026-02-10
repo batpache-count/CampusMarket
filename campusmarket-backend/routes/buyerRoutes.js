@@ -10,4 +10,11 @@ const { protect } = require('../middlewares/authMiddleware');
  */
 router.get('/metrics', protect, buyerController.getMetrics);
 
+/**
+ * @route PUT /api/buyer/profile
+ * @desc Actualizar datos del perfil
+ * @access Privada
+ */
+router.put('/profile', protect, buyerController.updateProfile);
+
 module.exports = router;

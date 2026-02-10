@@ -7,13 +7,29 @@
 
   <div *ngIf="loading" class="loading">Cargando historial...</div>
 
-  <div *ngIf="!loading && orders.length === 0" class="empty-state">
-    <p>Aún no has realizado ninguna compra.</p>
+  <!-- TABS DE NAVEGACIÓN -->
+  <div class="tabs-container" style="display: flex; gap: 10px; margin-bottom: 20px;">
+    <button (click)="switchTab('active')"
+      [style.border-bottom]="activeTab === 'active' ? '3px solid #2563eb' : '3px solid transparent'"
+      [style.color]="activeTab === 'active' ? '#2563eb' : '#64748b'"
+      style="background: none; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; font-size: 1rem;">
+      🚀 Pedidos Activos
+    </button>
+    <button (click)="switchTab('history')"
+      [style.border-bottom]="activeTab === 'history' ? '3px solid #2563eb' : '3px solid transparent'"
+      [style.color]="activeTab === 'history' ? '#2563eb' : '#64748b'"
+      style="background: none; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; font-size: 1rem;">
+      📜 Historial Pasado
+    </button>
+  </div>
+
+  <div *ngIf="!loading && filteredOrders.length === 0" class="empty-state">
+    <p>No tienes pedidos en esta sección.</p>
     <a routerLink="/home" class="btn-shop">Ir a comprar</a>
   </div>
 
-  <div class="orders-list" *ngIf="orders.length > 0">
-    <div *ngFor="let order of orders" class="order-card">
+  <div class="orders-list" *ngIf="filteredOrders.length > 0">
+    <div *ngFor="let order of filteredOrders" class="order-card">
       <div class="order-header">
         <span class="order-id">Pedido #{{ order.ID_Pedido }}</span>
         <span class="order-date">{{ order.Fecha_Entrega }}</span>
@@ -21,6 +37,48 @@
       </div>
 
       <div class="order-body">
+
+        <!-- STEPPER DE ESTADO -->
+        <div class="status-stepper">
+          <div class="step"
+            [class.active]="order.Estado_Pedido === 'Pendiente' || order.Estado_Pedido === 'En preparacion' || order.Estado_Pedido === 'Listo' || order.Estado_Pedido === 'Entregado'">
+            <div class="circle">1</div>
+            <div class="label">Pendiente</div>
+          </div>
+          <div class="line"
+            [class.active]="order.Estado_Pedido === 'En preparacion' || order.Estado_Pedido === 'Listo' || order.Estado_Pedido === 'Entregado'">
+          </div>
+
+          <div class="step"
+            [class.active]="order.Estado_Pedido === 'En preparacion' || order.Estado_Pedido === 'Listo' || order.Estado_Pedido === 'Entregado'">
+            <div class="circle">2</div>
+            <div class="label">Preparando</div>
+          </div>
+          <div class="line" [class.active]="order.Estado_Pedido === 'Listo' || order.Estado_Pedido === 'Entregado'">
+          </div>
+
+          <div class="step" [class.active]="order.Estado_Pedido === 'Listo' || order.Estado_Pedido === 'Entregado'">
+            <div class="circle">3</div>
+            <div class="label">Listo</div>
+          </div>
+          <div class="line" [class.active]="order.Estado_Pedido === 'Entregado'"></div>
+
+          <div class="step" [class.active]="order.Estado_Pedido === 'Entregado'">
+            <div class="circle">4</div>
+            <div class="label">Entregado</div>
+          </div>
+        </div>
+
+        <!-- CÓDIGO QR (SOLO SI ESTÁ LISTO O EN PREPARACIÓN/PENDIENTE) -->
+        <div class="qr-section"
+          *ngIf="qrCodes[order.ID_Pedido] && order.Estado_Pedido !== 'Entregado' && order.Estado_Pedido !== 'Cancelado'"
+          style="text-align: center; margin: 15px 0;">
+          <p style="font-weight: bold; color: #2563eb; margin-bottom: 5px;">Muestra este código para recibir tu pedido:
+          </p>
+          <img [src]="qrCodes[order.ID_Pedido]" alt="Código QR de Entrega"
+            style="width: 150px; height: 150px; border: 2px solid #e2e8f0; border-radius: 10px; padding: 5px;">
+        </div>
+
         <div class="info-row">
           <span>📍 Entrega:</span>
           <strong>{{ order.Lugar_Entrega || order.Nombre_Ubicacion }}</strong>
@@ -39,6 +97,15 @@
               <span>${{ item.Precio_Unitario * item.Cantidad }}</span>
             </li>
           </ul>
+        </div>
+
+        <!-- BOTÓN DE CALIFICAR (SOLO SI ENTREGADO) -->
+        <div class="rate-section" *ngIf="order.Estado_Pedido === 'Entregado'"
+          style="margin-top: 10px; text-align: right;">
+          <button class="btn-primary" (click)="openRateModal(order)" *ngIf="!order.Calificado">
+            ⭐ Calificar Servicio
+          </button>
+          <span *ngIf="order.Calificado" style="color: #16a34a; font-weight: bold;">✅ Calificado</span>
         </div>
 
         <div class="info-row total-row">

@@ -19,18 +19,16 @@
 
     <h1 style="display: flex; align-items: center; justify-content: space-between;">
       {{ product.Nombre }}
-      <button (click)="toggleFavorite()" [style.color]="isFavorite ? '#ef4444' : '#64748b'"
-        style="background: transparent; border: none; font-size: 1.5rem; cursor: pointer; transition: transform 0.2s;"
+      <button class="favorite-btn" (click)="toggleFavorite()" [style.color]="isFavorite ? '#ef4444' : '#64748b'"
         [style.transform]="isFavorite ? 'scale(1.1)' : 'scale(1)'">
         {{ isFavorite ? '❤️' : '🤍' }}
       </button>
     </h1>
 
     <!-- CALIFICACIÓN PROMEDIO -->
-    <div class="rating-display" style="margin-bottom: 15px; font-size: 1.1rem; color: #f59e0b;">
+    <div class="rating-display">
       <span class="stars-avg">⭐ {{ (averageRating | number:'1.1-1') || '0.0' }}</span>
-      <span class="votes-count" style="color: #64748b; font-size: 0.9rem; margin-left: 5px;">({{ totalVotes }}
-        votos)</span>
+      <span class="votes-count">({{ totalVotes }} votos)</span>
     </div>
 
     <!-- SECCIÓN VENDEDOR (RESTORED & FIXED) -->
@@ -51,11 +49,10 @@
     </div>
 
     <!-- LUGARES DE ENCUENTRO -->
-    <div class="meeting-places" *ngIf="locations.length > 0"
-      style="margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
-      <h3 style="margin-top: 0; font-size: 1rem; color: #334155;">📍 Lugares de Encuentro</h3>
-      <ul style="padding-left: 20px; margin-bottom: 0; color: #475569;">
-        <li *ngFor="let loc of locations" style="margin-bottom: 5px;">
+    <div class="meeting-places" *ngIf="locations.length > 0">
+      <h3>📍 Lugares de Encuentro</h3>
+      <ul>
+        <li *ngFor="let loc of locations">
           <strong>{{ loc.Nombre }}</strong> <span *ngIf="loc.Descripcion">- {{ loc.Descripcion }}</span>
         </li>
       </ul>
@@ -73,43 +70,24 @@
       </button>
     </div>
 
-    <!-- SECCIÓN PARA CALIFICAR -->
-    <div class="rate-product-section"
-      style="margin-top: 30px; padding: 20px; background: #fffbeb; border-radius: 12px; border: 1px solid #fcd34d;">
-      <h4 style="margin-top: 0; color: #92400e; margin-bottom: 10px;">¿Qué te pareció este producto?</h4>
-
-      <textarea [(ngModel)]="comment" placeholder="Escribe un comentario opcional..."
-        style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #fcd34d; margin-bottom: 10px; font-family: inherit; resize: vertical; min-height: 60px;"></textarea>
-
-      <div class="interactive-stars" style="font-size: 2rem; cursor: pointer; display: flex; gap: 5px;"
-        (mouseleave)="clearHover()">
-        <span *ngFor="let star of [1,2,3,4,5]" (click)="rate(star)" (mouseenter)="setHover(star)"
-          [style.color]="star <= (hoverRating || userRating) ? '#f59e0b' : '#d1d5db'"
-          style="transition: color 0.1s; transform: scale(1);">
-          ★
-        </span>
-      </div>
-      <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #b45309;">Toca una estrella para calificar y enviar</p>
-    </div>
+    <!-- SECCIÓN PARA CALIFICAR (ELIMINADA: Se califica desde Mis Pedidos) -->
 
     <!-- COMENTARIOS DE OTROS USUARIOS -->
-    <div class="reviews-section" style="margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 30px;">
-      <h3 style="color: #334155; margin-bottom: 20px;">💬 Reseñas de otros compradores</h3>
+    <div class="reviews-section">
+      <h3>💬 Reseñas de otros compradores</h3>
 
-      <div *ngIf="reviews.length === 0"
-        style="text-align: center; padding: 20px; color: #94a3b8; background: #f8fafc; border-radius: 10px;">
+      <div *ngIf="reviews.length === 0" class="no-reviews">
         Aún no hay comentarios para este producto.
       </div>
 
-      <div *ngFor="let r of reviews"
-        style="margin-bottom: 20px; padding: 15px; background: white; border-radius: 12px; border: 1px solid #f1f5f9; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-          <strong style="color: #1e293b;">{{ r.Nombre }} {{ r.Apellido_Paterno }}</strong>
+      <div *ngFor="let r of reviews" class="review-card">
+        <div class="review-header">
+          <strong class="review-author">{{ r.Nombre }} {{ r.Apellido_Paterno }}</strong>
           <span style="color: #f59e0b; font-size: 0.9rem;">{{ '★'.repeat(r.Puntuacion) }}{{ '☆'.repeat(5 - r.Puntuacion)
             }}</span>
         </div>
-        <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 10px;">{{ r.Fecha | date:'mediumDate' }}</div>
-        <p style="margin: 0; color: #475569; line-height: 1.5;">{{ r.Comentario }}</p>
+        <div class="review-date">{{ r.Fecha | date:'mediumDate' }}</div>
+        <p class="review-text">{{ r.Comentario }}</p>
       </div>
     </div>
 

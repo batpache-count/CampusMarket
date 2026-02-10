@@ -40,4 +40,24 @@ export class AuthService {
     // Limpiar el carrito visualmente
     this.cartService.resetCart();
   }
+
+  updateProfile(data: any): Observable<any> {
+    const token = localStorage.getItem('token_utm');
+    return this.http.put(`${this.apiUrl.replace('/auth', '/buyer')}/profile`, data, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem('token_utm');
+  }
+
+  isLoggedIn(): boolean {
+    return !!this.getToken();
+  }
+
+  getUser(): any {
+    const user = localStorage.getItem('user_data');
+    return user ? JSON.parse(user) : null;
+  }
 }

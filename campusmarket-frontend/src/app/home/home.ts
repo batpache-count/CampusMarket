@@ -6,6 +6,7 @@ import { ProductService } from '../services/product.service';
 import { CartService } from '../services/cart';
 import { AuthService } from '../services/auth';
 import { ThemeService } from '../services/theme.service'; // Import ThemeService
+import { NotificationService } from '../services/notification.service';
 
 @Component({
   selector: 'app-home',
@@ -32,7 +33,8 @@ export class Home implements OnInit {
     private authService: AuthService,
     private router: Router,
     private themeService: ThemeService,
-    private route: ActivatedRoute // Inject ActivatedRoute
+    private route: ActivatedRoute,
+    private notificationService: NotificationService // Inject NotificationService
   ) {
     this.currentTheme = this.themeService.getTheme();
   }
@@ -40,10 +42,22 @@ export class Home implements OnInit {
   ngOnInit() {
     this.loadCategories();
     this.loadProducts();
+    this.loadNotificationCount();
 
     this.cartService.cartCount$.subscribe((count: number) => {
       this.cartCount = count;
     });
+  }
+
+  unreadCount: number = 0;
+
+  loadNotificationCount() {
+    if (this.authService.isLoggedIn()) {
+      this.notificationService.getUnreadCount().subscribe({
+        next: (count) => this.unreadCount = count,
+        error: (err) => console.error('Error loading notifications', err)
+      });
+    }
   }
 
   loadCategories() {
@@ -70,6 +84,8 @@ export class Home implements OnInit {
           } else {
             this.filteredProducts = data;
           }
+          this.filterProducts(); // Ensure sorting is applied
+
         });
       },
       error: (err) => console.error('Error cargando productos', err)
@@ -94,7 +110,27 @@ export class Home implements OnInit {
       );
     }
 
-    this.filteredProducts = temp;
+    this.filteredProducts = temp.sort((a, b) => {
+      const stockA = this.isOutOfStock(a) ? 1 : 0;
+      const stockB = this.isOutOfStock(b) ? 1 : 0;
+      return stockA - stockB;
+    });
+  }
+
+  get sellerName(): string {
+    if (this.filteredProducts.length > 0) {
+      // Check if we are filtering by seller (all products have same sellerId)
+      const first = this.filteredProducts[0];
+      const sellerId = this.route.snapshot.queryParams['sellerId'];
+      if (sellerId && this.filteredProducts.every(p => p.ID_Vendedor == sellerId)) {
+        return first.Nombre_Tienda || 'Vendedor';
+      }
+    }
+    return '';
+  }
+
+  clearSellerFilter() {
+    this.router.navigate(['/home']);
   }
 
   getCategoryIcon(categoryName: string): string {

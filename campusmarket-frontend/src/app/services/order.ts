@@ -32,4 +32,12 @@ export class OrderService {
   createPreference(items: any[]): Observable<any> {
     return this.http.post('http://localhost:3000/api/payment/create_preference', { items }, { headers: this.getHeaders() });
   }
+
+  validateQR(orderId: number, qrToken: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/validate-qr`, { orderId, qrToken }, { headers: this.getHeaders() });
+  }
+
+  rateOrder(orderId: number, rating: number, comment: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${orderId}/rate`, { rating, comment }, { headers: this.getHeaders() });
+  }
 }

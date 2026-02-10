@@ -14,8 +14,8 @@ const { protect, restrictTo } = require('../middlewares/authMiddleware');
  * @access Privada (Cualquier usuario logueado)
  */
 router.post(
-    '/', 
-    protect, 
+    '/',
+    protect,
     orderController.createOrder
 );
 
@@ -63,6 +63,29 @@ router.put(
     protect,
     restrictTo('Vendedor'),
     orderController.updateOrderStatus
+);
+
+/**
+ * @route POST /api/orders/validate-qr
+ * @desc Validar entrega con QR (RF-V-010).
+ * @access Privada (Solo Vendedor)
+ */
+router.post(
+    '/validate-qr',
+    protect,
+    restrictTo('Vendedor'),
+    orderController.validateQR
+);
+
+/**
+ * @route POST /api/orders/:id/rate
+ * @desc Calificar pedido entregado (RF-C-007).
+ * @access Privada (Solo Comprador)
+ */
+router.post(
+    '/:id/rate',
+    protect,
+    orderController.rateOrder
 );
 
 module.exports = router;

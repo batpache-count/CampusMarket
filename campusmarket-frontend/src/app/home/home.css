@@ -444,3 +444,62 @@
   text-transform: uppercase;
   z-index: 10;
 }
+
+/* === SELLER BANNER === */
+.seller-banner {
+  background-color: var(--secondary-color);
+  padding: 15px 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--primary-color);
+  color: var(--text-color);
+}
+
+.seller-banner strong {
+  color: var(--primary-color);
+}
+
+/* === MOBILE FILTERS (CHIPS) === */
+.mobile-filters {
+  display: none;
+  /* Hidden by default on desktop */
+  margin-bottom: 20px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+.chip-list {
+  display: flex;
+  gap: 10px;
+}
+
+.chip {
+  background-color: var(--card-background-color);
+  border: 1px solid var(--input-border-color);
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  cursor: pointer;
+  color: var(--text-color);
+  transition: 0.2s;
+}
+
+.chip.active {
+  background-color: #00A859;
+  color: white;
+  border-color: #00A859;
+}
+
+@media (max-width: 900px) {
+  .sidebar-filters {
+    display: none;
+  }
+
+  .mobile-filters {
+    display: block;
+  }
+}

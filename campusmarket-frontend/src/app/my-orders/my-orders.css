@@ -1,54 +1,164 @@
+/* Estilos existentes... */
 .orders-container {
-  max-width: 800px;
-  margin: 40px auto;
   padding: 20px;
-  font-family: 'Segoe UI', sans-serif;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .header-nav {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 15px;
+  gap: 15px;
+  margin-bottom: 20px;
 }
 
-.btn-back { text-decoration: none; color: #666; font-weight: 600; }
-.btn-back:hover { color: #000; }
+.btn-back {
+  text-decoration: none;
+  color: var(--primary-color);
+  font-weight: 500;
+}
 
-h1 { margin: 0; font-size: 1.8rem; color: #111; }
+h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
 
-.empty-state { text-align: center; padding: 50px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-.btn-shop { display: inline-block; margin-top: 15px; background: #000; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; }
-
-/* TARJETAS DE PEDIDO */
 .order-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
   overflow: hidden;
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--border-color);
 }
 
 .order-header {
-  background: #f9fafb;
-  padding: 15px 20px;
+  background: var(--bg-secondary);
+  padding: 15px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.order-id { font-weight: bold; color: #333; }
-.order-date { color: #666; font-size: 0.9rem; }
+.order-id {
+  font-weight: bold;
+  color: var(--text-color);
+}
 
-.status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; }
-.status-badge.Pendiente { background: #fffbeb; color: #b45309; }
-.status-badge.Entregado { background: #ecfdf5; color: #047857; }
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
 
-.order-body { padding: 20px; }
-.info-row { display: flex; justify-content: space-between; margin-bottom: 8px; color: #555; }
-.total-row { margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; font-size: 1.1rem; color: #000; }
-.total-price { color: #2563eb; font-weight: 800; }
+.status-badge.Pendiente {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.status-badge.En {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+/* En preparacion */
+.status-badge.Listo {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.status-badge.Entregado {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.status-badge.Cancelado {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.order-body {
+  padding: 15px;
+}
+
+/* STEPPER STYLES */
+.status-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding: 10px 0;
+}
+
+.status-stepper .step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 2;
+}
+
+.status-stepper .circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.status-stepper .label {
+  font-size: 0.75rem;
+  margin-top: 5px;
+  color: #94a3b8;
+}
+
+.status-stepper .line {
+  flex: 1;
+  height: 3px;
+  background: #e2e8f0;
+  margin: 0 5px;
+  margin-bottom: 15px;
+  /* Align with circle */
+  transition: all 0.3s ease;
+}
+
+/* Active State */
+.step.active .circle {
+  background: #2563eb;
+  color: white;
+}
+
+.step.active .label {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.line.active {
+  background: #2563eb;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  color: var(--text-color);
+}
+
+.total-row {
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-color);
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.total-price {
+  color: var(--primary-color);
+}

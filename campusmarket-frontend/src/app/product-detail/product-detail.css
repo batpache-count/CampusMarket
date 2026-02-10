@@ -223,3 +223,140 @@ h1 {
     max-height: 350px;
   }
 }
+
+/* === NEW REFACTORED STYLES === */
+.meeting-places h3 {
+  margin-top: 0;
+  font-size: 1rem;
+  color: var(--text-color);
+}
+
+.meeting-places ul {
+  padding-left: 20px;
+  margin-bottom: 0;
+  color: var(--text-color-light);
+}
+
+.meeting-places li {
+  margin-bottom: 5px;
+}
+
+/* Rate Product Section */
+.rate-product-section {
+  margin-top: 30px;
+  padding: 20px;
+  background: var(--input-background-color);
+  border-radius: 12px;
+  border: 1px solid var(--primary-color);
+}
+
+.rate-product-section h4 {
+  margin-top: 0;
+  color: var(--text-color);
+  margin-bottom: 10px;
+}
+
+.rate-product-section textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--input-border-color);
+  background-color: var(--card-background-color);
+  color: var(--text-color);
+  margin-bottom: 10px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 60px;
+}
+
+.interactive-stars {
+  font-size: 2rem;
+  cursor: pointer;
+  display: flex;
+  gap: 5px;
+}
+
+.interactive-stars span {
+  transition: color 0.1s;
+  transform: scale(1);
+}
+
+.rate-product-caption {
+  margin: 5px 0 0 0;
+  font-size: 0.85rem;
+  color: var(--text-color-light);
+}
+
+/* Reviews Section */
+.reviews-section {
+  margin-top: 40px;
+  border-top: 1px solid var(--input-border-color);
+  padding-top: 30px;
+}
+
+.reviews-section h3 {
+  color: var(--text-color);
+  margin-bottom: 20px;
+}
+
+.no-reviews {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-color-light);
+  background: var(--input-background-color);
+  border-radius: 10px;
+}
+
+.review-card {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: var(--card-background-color);
+  border-radius: 12px;
+  border: 1px solid var(--input-border-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.review-author {
+  color: var(--text-color);
+  font-weight: bold;
+}
+
+.review-date {
+  font-size: 0.8rem;
+  color: var(--text-color-light);
+  margin-bottom: 10px;
+}
+
+.review-text {
+  margin: 0;
+  color: var(--text-color-light);
+  line-height: 1.5;
+}
+
+/* Favorites Button */
+.favorite-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.rating-display {
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+  color: #f59e0b;
+}
+
+.votes-count {
+  color: var(--text-color-light);
+  font-size: 0.9rem;
+  margin-left: 5px;
+}

@@ -115,42 +115,7 @@ export class ProductDetail implements OnInit {
     });
   }
 
-  setHover(star: number) {
-    this.hoverRating = star;
-  }
-
-  clearHover() {
-    this.hoverRating = 0;
-  }
-
-  rate(stars: number) {
-    if (!this.product) return;
-
-    const token = localStorage.getItem('token_utm');
-    if (!token) {
-      alert('Debes iniciar sesión para calificar este producto.');
-      return;
-    }
-
-    console.log(`Calificando con ${stars} estrellas...`);
-
-    const previousRating = this.userRating;
-    this.userRating = stars; // Optimistic update
-
-    this.http.post(`http://localhost:3000/api/products/${this.product.ID_Producto}/rate`, {
-      rating: stars
-    }, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    }).subscribe({
-      next: (res) => {
-        console.log('Calificación guardada:', res);
-        this.loadProduct(this.product.ID_Producto);
-      },
-      error: (err) => {
-        console.error('Error al calificar:', err);
-        this.userRating = previousRating; // Revertir
-        alert('Hubo un error al guardar tu calificación. Intenta de nuevo.');
-      }
-    });
-  }
+  // Métodos de calificación interactiva eliminados.
+  // La calificación ahora se realiza exclusivamente desde "Mis Pedidos" (MyOrdersComponent)
+  // para garantizar que solo se califiquen compras verificadas y entregadas.
 }

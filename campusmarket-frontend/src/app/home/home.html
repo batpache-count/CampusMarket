@@ -1,3 +1,5 @@
+</nav>
+
 <nav class="top-navbar">
   <div class="nav-logo">
     <span>MERCADITO</span> <span class="utm-green">UTM</span> 🦎
@@ -7,6 +9,16 @@
     <button class="btn-secondary theme-toggle" (click)="toggleTheme()" style="margin-right: 10px;">
       {{ currentTheme === 'dark' ? '☀️' : '🌙' }}
     </button>
+
+    <div class="notification-btn-container" style="position: relative; margin-right: 10px;">
+      <button class="btn-secondary" [routerLink]="['/notifications']">
+        🔔
+        <span *ngIf="unreadCount > 0" class="badge-count"
+          style="position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; font-weight: bold;">
+          {{ unreadCount }}
+        </span>
+      </button>
+    </div>
 
     <div class="cart-btn-container">
       <button class="btn-secondary" (click)="goToCart()">
@@ -64,6 +76,22 @@
         <div class="search-pill">
           <i class="fa-solid fa-search">🔍</i>
           <input type="text" [(ngModel)]="searchTerm" (input)="filterProducts()" placeholder="Buscar productos...">
+        </div>
+      </div>
+
+      <!-- SELLER BANNER -->
+      <div *ngIf="sellerName" class="seller-banner">
+        <span>🏪 Estás viendo productos de: <strong>{{ sellerName }}</strong></span>
+        <button class="btn-text-primary" (click)="clearSellerFilter()">Ver todos</button>
+      </div>
+
+      <!-- FILTROS HORIZONTALES (Móvil) -->
+      <div class="mobile-filters">
+        <div class="chip-list">
+          <button *ngFor="let cat of categories" class="chip" [class.active]="selectedCategory === cat.Nombre"
+            (click)="selectCategory(cat)">
+            {{ getCategoryIcon(cat.Nombre) }} {{ cat.Nombre }}
+          </button>
         </div>
       </div>
 

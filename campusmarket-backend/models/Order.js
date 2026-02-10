@@ -227,6 +227,55 @@ class Order {
             throw error;
         }
     }
+
+    /**
+     * Agrega una reseña al pedido (y potencialmente a los productos).
+     * (RF-C-007)
+     */
+    static async addReview(idPedido, rating, comment) {
+        // Opción A: Guardar en una tabla 'resena_pedido' si existe.
+        // Opción B: Guardar en la misma tabla 'pedido' si tiene columnas.
+        // Opción C: Guardar en 'resena_producto' por cada producto del pedido.
+
+        // Vamos a asumir la Opción C para que aparezca en el detalle del producto.
+        const connection = await pool.getConnection();
+        try {
+            await connection.beginTransaction();
+
+            // 1. Obtener productos del pedido
+            const detalles = await Order.findDetails(idPedido);
+            const idComprador = (await Order.findById(idPedido)).ID_Comprador;
+
+            // 2. Insertar reseña para cada producto
+            // Nota: Esto puede generar spam si son muchos productos. 
+            // Lo ideal sería una reseña por producto, pero desde la UI de "Calificar Pedido" generalizamos.
+            // O mejor aún, solo guardamos la reseña vinculada al Vendedor o al Pedido.
+
+            // Si el sistema original tenía reseñas por producto, deberíamos insertar una por cada producto
+            // O cambiar el modelo a Reseña de Vendedor.
+            // Dado el 'product-detail.ts' que lee de `/api/products/:id/reviews`, 
+            // EL SISTEMA ESPERA RESEÑAS POR PRODUCTO.
+
+            for (const item of detalles) {
+                const reviewQuery = `
+                    INSERT INTO resena (ID_Producto, ID_Usuario, Puntuacion, Comentario, Fecha)
+                    VALUES (?, ?, ?, ?, NOW())
+                `;
+                await connection.query(reviewQuery, [item.ID_Producto, idComprador, rating, comment]);
+            }
+
+            // Marcar pedido como Calificado (Opcional, si agregamos columna 'Calificado')
+            // await connection.query("UPDATE pedido SET Calificado = 1 WHERE ID_Pedido = ?", [idPedido]);
+
+            await connection.commit();
+            return true;
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        } finally {
+            connection.release();
+        }
+    }
 }
 
 module.exports = Order;

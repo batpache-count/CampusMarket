@@ -55,3 +55,27 @@ exports.getMetrics = async (req, res) => {
         res.status(500).json({ message: 'Error al obtener métricas.' });
     }
 };
+
+/**
+ * Actualiza el perfil del comprador.
+ */
+exports.updateProfile = async (req, res) => {
+    const userId = req.user.ID_Usuario;
+    const { nombre, telefono } = req.body;
+
+    try {
+        // Actualizar datos básicos (Nombre y Teléfono)
+        // Nota: Si 'nombre' viene completo, lo guardamos en 'Nombre'. 
+        // Si quisieran separar apellidos, habría que cambiar el form del front.
+        await pool.query(
+            'UPDATE usuario SET Nombre = ?, Telefono = ? WHERE ID_Usuario = ?',
+            [nombre, telefono, userId]
+        );
+
+        res.json({ message: 'Perfil actualizado correctamente.' });
+
+    } catch (error) {
+        console.error('Error actualizando perfil:', error);
+        res.status(500).json({ message: 'Error al actualizar perfil.' });
+    }
+};

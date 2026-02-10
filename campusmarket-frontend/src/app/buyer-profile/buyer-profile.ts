@@ -94,16 +94,28 @@ export class BuyerProfileComponent implements OnInit {
 
   updateProfile() {
     if (this.profileForm.valid) {
-      this.user = { ...this.user, ...this.profileForm.value };
+      // 1. Preparar datos para enviar
+      const formData = this.profileForm.value;
 
-      if (this.profilePhotoUrl.includes('ui-avatars.com')) {
-        this.profilePhotoUrl = `https://ui-avatars.com/api/?name=${this.user.nombre}&background=0D8ABC&color=fff`;
-        this.user.photoUrl = this.profilePhotoUrl;
-      }
+      // 2. Llamar al backend
+      this.authService.updateProfile(formData).subscribe({
+        next: (res) => {
+          // 3. Si éxito, actualizar localmente
+          this.user = { ...this.user, ...formData };
 
-      this.saveToStorage();
+          if (this.profilePhotoUrl.includes('ui-avatars.com')) {
+            this.profilePhotoUrl = `https://ui-avatars.com/api/?name=${this.user.nombre}&background=0D8ABC&color=fff`;
+            this.user.photoUrl = this.profilePhotoUrl;
+          }
 
-      alert('✅ Datos actualizados correctamente');
+          this.saveToStorage();
+          alert('✅ Datos actualizados en el servidor correctamente');
+        },
+        error: (err) => {
+          console.error(err);
+          alert('❌ Error al actualizar en el servidor, intente más tarde.');
+        }
+      });
     }
   }
 
