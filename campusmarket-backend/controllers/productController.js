@@ -28,17 +28,18 @@ exports.createProduct = async (req, res) => {
         if (!vendorId) return res.status(403).json({ message: 'No eres vendedor.' });
 
         const query = `
-            INSERT INTO producto (Nombre, Descripcion, Precio, Stock, ID_Categoria, ID_Vendedor, Imagen_URL)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO producto ("Nombre", "Descripcion", "Precio", "Stock", "ID_Categoria", "ID_Vendedor", "Imagen_URL")
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING "ID_Producto"
         `;
 
-        const [result] = await pool.query(query, [
+        const { rows } = await pool.query(query, [
             Nombre, Descripcion, Precio, Stock, ID_Categoria, vendorId, Imagen_URL
         ]);
 
         res.status(201).json({
             message: 'Producto creado exitosamente',
-            productId: result.insertId,
+            productId: rows[0].ID_Producto,
             image: Imagen_URL
         });
 
@@ -57,21 +58,21 @@ exports.getPublicCatalog = async (req, res) => {
         const query = `
             SELECT 
                 p.*, 
-                c.Nombre AS Categoria_Nombre,
-                v.Nombre_Tienda,
-                COALESCE(stats.Promedio, 0) AS Promedio_Calificacion,
-                COALESCE(stats.Votos, 0) AS Total_Votos
+                c."Nombre" AS "Categoria_Nombre",
+                v."Nombre_Tienda",
+                COALESCE(stats."Promedio", 0) AS "Promedio_Calificacion",
+                COALESCE(stats."Votos", 0) AS "Total_Votos"
             FROM producto p
-            LEFT JOIN categoria c ON p.ID_Categoria = c.ID_Categoria
-            LEFT JOIN vendedor v ON p.ID_Vendedor = v.ID_Vendedor
+            LEFT JOIN categoria c ON p."ID_Categoria" = c."ID_Categoria"
+            LEFT JOIN vendedor v ON p."ID_Vendedor" = v."ID_Vendedor"
             LEFT JOIN (
-                SELECT ID_Producto, AVG(Puntuacion) as Promedio, COUNT(*) as Votos
+                SELECT "ID_Producto", AVG("Puntuacion") as "Promedio", COUNT(*) as "Votos"
                 FROM calificacion_producto
-                GROUP BY ID_Producto
-            ) stats ON p.ID_Producto = stats.ID_Producto
-            ORDER BY p.ID_Producto DESC
+                GROUP BY "ID_Producto"
+            ) stats ON p."ID_Producto" = stats."ID_Producto"
+            ORDER BY p."ID_Producto" DESC
         `;
-        const [catalog] = await pool.query(query);
+        const { rows: catalog } = await pool.query(query);
         res.json(catalog);
     } catch (error) {
         console.error('Error en getPublicCatalog:', error);
@@ -90,13 +91,13 @@ exports.getMyInventory = async (req, res) => {
         const query = `
             SELECT 
                 p.*, 
-                c.Nombre AS Categoria_Nombre 
+                c."Nombre" AS "Categoria_Nombre" 
             FROM producto p
-            LEFT JOIN categoria c ON p.ID_Categoria = c.ID_Categoria
-            WHERE p.ID_Vendedor = ?
-            ORDER BY p.ID_Producto DESC
+            LEFT JOIN categoria c ON p."ID_Categoria" = c."ID_Categoria"
+            WHERE p."ID_Vendedor" = $1
+            ORDER BY p."ID_Producto" DESC
         `;
-        const [inventory] = await pool.query(query, [vendorId]);
+        const { rows: inventory } = await pool.query(query, [vendorId]);
         res.json(inventory);
     } catch (error) {
         console.error(error);
@@ -110,20 +111,36 @@ exports.getMyInventory = async (req, res) => {
 exports.updateProduct = async (req, res) => {
     const productId = req.params.id;
     try {
-        const [oldProductRows] = await pool.query('SELECT Stock, Nombre FROM producto WHERE ID_Producto = ?', [productId]);
+        const { rows: oldProductRows } = await pool.query('SELECT "Stock", "Nombre" FROM producto WHERE "ID_Producto" = $1', [productId]);
         const oldStock = oldProductRows[0]?.Stock || 0;
 
         const updateData = { ...req.body };
+        const params = [];
+        let setClause = [];
+        let paramIndex = 1;
+
+        if (updateData.Nombre) { setClause.push(`"Nombre" = $${paramIndex++}`); params.push(updateData.Nombre); }
+        if (updateData.Descripcion) { setClause.push(`"Descripcion" = $${paramIndex++}`); params.push(updateData.Descripcion); }
+        if (updateData.Precio) { setClause.push(`"Precio" = $${paramIndex++}`); params.push(updateData.Precio); }
+        if (updateData.Stock) { setClause.push(`"Stock" = $${paramIndex++}`); params.push(updateData.Stock); }
+        if (updateData.ID_Categoria) { setClause.push(`"ID_Categoria" = $${paramIndex++}`); params.push(updateData.ID_Categoria); }
+
         if (req.file) {
-            updateData.Imagen_URL = req.file.filename;
+            setClause.push(`"Imagen_URL" = $${paramIndex++}`);
+            params.push(req.file.filename);
+            updateData.Imagen_URL = req.file.filename; // Para lógica de stock abajo si se necesitara
         }
-        await pool.query('UPDATE producto SET ? WHERE ID_Producto = ?', [updateData, productId]);
+
+        if (setClause.length > 0) {
+            params.push(productId);
+            await pool.query(`UPDATE producto SET ${setClause.join(', ')} WHERE "ID_Producto" = $${paramIndex}`, params);
+        }
 
         // Lógica de Notificación de Re-stock
         const newStock = updateData.Stock || updateData.stock || 0;
         if (oldStock === 0 && newStock > 0) {
             const Notification = require('../models/Notification');
-            const [favoritedBy] = await pool.query('SELECT ID_Usuario FROM favoritos WHERE ID_Producto = ?', [productId]);
+            const { rows: favoritedBy } = await pool.query('SELECT "ID_Usuario" FROM favoritos WHERE "ID_Producto" = $1', [productId]);
 
             for (const fav of favoritedBy) {
                 await Notification.create({
@@ -148,7 +165,7 @@ exports.updateProduct = async (req, res) => {
 exports.deleteProduct = async (req, res) => {
     const productId = req.params.id;
     try {
-        await pool.query('DELETE FROM producto WHERE ID_Producto = ?', [productId]);
+        await pool.query('DELETE FROM producto WHERE "ID_Producto" = $1', [productId]);
         res.json({ message: 'Producto eliminado.' });
     } catch (error) {
         res.status(500).json({ message: 'Error al eliminar.' });
@@ -161,7 +178,7 @@ exports.deactivateProduct = exports.deleteProduct;
  */
 exports.getCategories = async (req, res) => {
     try {
-        const [cats] = await pool.query('SELECT * FROM categoria');
+        const { rows: cats } = await pool.query('SELECT * FROM categoria');
         res.json(cats);
     } catch (error) {
         res.status(500).json({ message: 'Error al cargar categorías' });
@@ -178,21 +195,21 @@ exports.getProductById = async (req, res) => {
         const query = `
             SELECT 
                 p.*,
-                c.Nombre AS Categoria_Nombre,
-                v.Nombre_Tienda,
-                COALESCE(stats.Promedio, 0) AS Promedio_Calificacion,
-                COALESCE(stats.Votos, 0) AS Total_Votos
+                c."Nombre" AS "Categoria_Nombre",
+                v."Nombre_Tienda",
+                COALESCE(stats."Promedio", 0) AS "Promedio_Calificacion",
+                COALESCE(stats."Votos", 0) AS "Total_Votos"
             FROM producto p
-            LEFT JOIN categoria c ON p.ID_Categoria = c.ID_Categoria
-            LEFT JOIN vendedor v ON p.ID_Vendedor = v.ID_Vendedor
+            LEFT JOIN categoria c ON p."ID_Categoria" = c."ID_Categoria"
+            LEFT JOIN vendedor v ON p."ID_Vendedor" = v."ID_Vendedor"
             LEFT JOIN (
-                SELECT ID_Producto, AVG(Puntuacion) as Promedio, COUNT(*) as Votos
+                SELECT "ID_Producto", AVG("Puntuacion") as "Promedio", COUNT(*) as "Votos"
                 FROM calificacion_producto
-                GROUP BY ID_Producto
-            ) stats ON p.ID_Producto = stats.ID_Producto
-            WHERE p.ID_Producto = ?
+                GROUP BY "ID_Producto"
+            ) stats ON p."ID_Producto" = stats."ID_Producto"
+            WHERE p."ID_Producto" = $1
         `;
-        const [rows] = await pool.query(query, [req.params.id]);
+        const { rows } = await pool.query(query, [req.params.id]);
         if (rows.length === 0) return res.status(404).json({ message: 'No encontrado' });
 
         const product = rows[0];
@@ -201,14 +218,14 @@ exports.getProductById = async (req, res) => {
         let userRating = null;
         let isFavorite = false;
         if (userId) {
-            const [ratingRows] = await pool.query(
-                'SELECT Puntuacion FROM calificacion_producto WHERE ID_Producto = ? AND ID_Usuario = ?',
+            const { rows: ratingRows } = await pool.query(
+                'SELECT "Puntuacion" FROM calificacion_producto WHERE "ID_Producto" = $1 AND "ID_Usuario" = $2',
                 [req.params.id, userId]
             );
             if (ratingRows.length > 0) userRating = ratingRows[0].Puntuacion;
 
-            const [favRows] = await pool.query(
-                'SELECT ID_Favorito FROM favoritos WHERE ID_Producto = ? AND ID_Usuario = ?',
+            const { rows: favRows } = await pool.query(
+                'SELECT "ID_Favorito" FROM favoritos WHERE "ID_Producto" = $1 AND "ID_Usuario" = $2',
                 [req.params.id, userId]
             );
             isFavorite = favRows.length > 0;
@@ -235,11 +252,12 @@ exports.rateProduct = async (req, res) => {
 
     try {
         const query = `
-            INSERT INTO calificacion_producto (ID_Producto, ID_Usuario, Puntuacion, Comentario)
-            VALUES (?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE Puntuacion = ?, Comentario = ?, Fecha = CURRENT_TIMESTAMP
+            INSERT INTO calificacion_producto ("ID_Producto", "ID_Usuario", "Puntuacion", "Comentario")
+            VALUES ($1, $2, $3, $4)
+            ON CONFLICT ("ID_Producto", "ID_Usuario") DO UPDATE 
+            SET "Puntuacion" = $3, "Comentario" = $4, "Fecha" = NOW()
         `;
-        await pool.query(query, [productId, userId, rating, comment, rating, comment]);
+        await pool.query(query, [productId, userId, rating, comment]);
 
         res.json({ message: 'Calificación guardada.' });
     } catch (error) {
@@ -256,16 +274,16 @@ exports.toggleFavorite = async (req, res) => {
     const userId = req.user.ID_Usuario;
 
     try {
-        const [exists] = await pool.query(
-            'SELECT ID_Favorito FROM favoritos WHERE ID_Usuario = ? AND ID_Producto = ?',
+        const { rows: exists } = await pool.query(
+            'SELECT "ID_Favorito" FROM favoritos WHERE "ID_Usuario" = $1 AND "ID_Producto" = $2',
             [userId, productId]
         );
 
         if (exists.length > 0) {
-            await pool.query('DELETE FROM favoritos WHERE ID_Usuario = ? AND ID_Producto = ?', [userId, productId]);
+            await pool.query('DELETE FROM favoritos WHERE "ID_Usuario" = $1 AND "ID_Producto" = $2', [userId, productId]);
             return res.json({ message: 'Eliminado de favoritos', isFavorite: false });
         } else {
-            await pool.query('INSERT INTO favoritos (ID_Usuario, ID_Producto) VALUES (?, ?)', [userId, productId]);
+            await pool.query('INSERT INTO favoritos ("ID_Usuario", "ID_Producto") VALUES ($1, $2)', [userId, productId]);
             return res.json({ message: 'Agregado a favoritos', isFavorite: true });
         }
     } catch (error) {
@@ -280,14 +298,14 @@ exports.toggleFavorite = async (req, res) => {
 exports.getFavorites = async (req, res) => {
     try {
         const query = `
-            SELECT p.*, v.Nombre_Tienda
+            SELECT p.*, v."Nombre_Tienda"
             FROM favoritos f
-            JOIN producto p ON f.ID_Producto = p.ID_Producto
-            JOIN vendedor v ON p.ID_Vendedor = v.ID_Vendedor
-            WHERE f.ID_Usuario = ?
-            ORDER BY f.Fecha_Agregado DESC
+            JOIN producto p ON f."ID_Producto" = p."ID_Producto"
+            JOIN vendedor v ON p."ID_Vendedor" = v."ID_Vendedor"
+            WHERE f."ID_Usuario" = $1
+            ORDER BY f."Fecha_Agregado" DESC
         `;
-        const [favs] = await pool.query(query, [req.user.ID_Usuario]);
+        const { rows: favs } = await pool.query(query, [req.user.ID_Usuario]);
         res.json(favs);
     } catch (error) {
         console.error('Error in getFavorites:', error);
@@ -301,13 +319,13 @@ exports.getFavorites = async (req, res) => {
 exports.getProductReviews = async (req, res) => {
     try {
         const query = `
-            SELECT r.*, u.Nombre, u.Apellido_Paterno
+            SELECT r.*, u."Nombre", u."Apellido_Paterno"
             FROM calificacion_producto r
-            JOIN usuario u ON r.ID_Usuario = u.ID_Usuario
-            WHERE r.ID_Producto = ?
-            ORDER BY r.Fecha DESC
+            JOIN usuario u ON r."ID_Usuario" = u."ID_Usuario"
+            WHERE r."ID_Producto" = $1
+            ORDER BY r."Fecha" DESC
         `;
-        const [reviews] = await pool.query(query, [req.params.productId]);
+        const { rows: reviews } = await pool.query(query, [req.params.productId]);
         res.json(reviews);
     } catch (error) {
         console.error('Error in getProductReviews:', error);

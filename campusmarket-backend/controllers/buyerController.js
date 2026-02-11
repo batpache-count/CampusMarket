@@ -8,35 +8,36 @@ exports.getMetrics = async (req, res) => {
 
     try {
         // 1. Resumen general (Total gastado y conteo)
-        const [summary] = await pool.query(
-            'SELECT SUM(Precio_Total) as totalSpent, COUNT(*) as orderCount FROM pedido WHERE ID_Comprador = ?',
+        const { rows: summary } = await pool.query(
+            'SELECT SUM("Precio_Total") as "totalSpent", COUNT(*) as "orderCount" FROM pedido WHERE "ID_Comprador" = $1',
             [userId]
         );
 
         // 2. Pedidos por estado
-        const [statusStats] = await pool.query(
-            'SELECT Estado_Pedido, COUNT(*) as count FROM pedido WHERE ID_Comprador = ? GROUP BY Estado_Pedido',
+        const { rows: statusStats } = await pool.query(
+            'SELECT "Estado_Pedido", COUNT(*) as "count" FROM pedido WHERE "ID_Comprador" = $1 GROUP BY "Estado_Pedido"',
             [userId]
         );
 
         // 3. Gasto por mes (últimos 6 meses)
-        const [monthlySpending] = await pool.query(
-            `SELECT DATE_FORMAT(Fecha_Creacion, '%Y-%m') as month, SUM(Precio_Total) as amount 
+        // Postgres: TO_CHAR instead of DATE_FORMAT
+        const { rows: monthlySpending } = await pool.query(
+            `SELECT TO_CHAR("Fecha_Creacion", 'YYYY-MM') as month, SUM("Precio_Total") as amount 
              FROM pedido 
-             WHERE ID_Comprador = ? AND Fecha_Creacion >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+             WHERE "ID_Comprador" = $1 AND "Fecha_Creacion" >= (NOW() - INTERVAL '6 months')
              GROUP BY month ORDER BY month`,
             [userId]
         );
 
         // 4. Distribución por categorías
-        const [categoryDist] = await pool.query(
-            `SELECT c.Nombre, SUM(dp.Cantidad * dp.Precio_Unitario) as spending
+        const { rows: categoryDist } = await pool.query(
+            `SELECT c."Nombre", SUM(dp."Cantidad" * dp."Precio_Unitario") as spending
              FROM detalle_pedido dp
-             JOIN producto p ON dp.ID_Producto = p.ID_Producto
-             JOIN categoria c ON p.ID_Categoria = c.ID_Categoria
-             JOIN pedido ped ON dp.ID_Pedido = ped.ID_Pedido
-             WHERE ped.ID_Comprador = ?
-             GROUP BY c.ID_Categoria ORDER BY spending DESC LIMIT 5`,
+             JOIN producto p ON dp."ID_Producto" = p."ID_Producto"
+             JOIN categoria c ON p."ID_Categoria" = c."ID_Categoria"
+             JOIN pedido ped ON dp."ID_Pedido" = ped."ID_Pedido"
+             WHERE ped."ID_Comprador" = $1
+             GROUP BY c."ID_Categoria", c."Nombre" ORDER BY spending DESC LIMIT 5`,
             [userId]
         );
 
@@ -65,10 +66,8 @@ exports.updateProfile = async (req, res) => {
 
     try {
         // Actualizar datos básicos (Nombre y Teléfono)
-        // Nota: Si 'nombre' viene completo, lo guardamos en 'Nombre'. 
-        // Si quisieran separar apellidos, habría que cambiar el form del front.
         await pool.query(
-            'UPDATE usuario SET Nombre = ?, Telefono = ? WHERE ID_Usuario = ?',
+            'UPDATE usuario SET "Nombre" = $1, "Telefono" = $2 WHERE "ID_Usuario" = $3',
             [nombre, telefono, userId]
         );
 

@@ -5,21 +5,21 @@ exports.getCart = async (req, res) => {
     console.log('[GetCart] Request received for user:', req.user ? req.user.ID_Usuario : 'unknown');
     try {
         const userId = req.user.ID_Usuario;
-        const [rows] = await pool.query(`
+        const { rows } = await pool.query(`
             SELECT 
-                c.ID_Carrito,
-                c.ID_Producto as id,
-                c.Cantidad as quantity,
-                p.Nombre as name,
-                p.Precio as price,
-                p.Imagen_URL as image,
-                p.Stock,
-                p.ID_Vendedor,
-                v.Nombre_Tienda as seller
+                c."ID_Carrito",
+                c."ID_Producto" as id,
+                c."Cantidad" as quantity,
+                p."Nombre" as name,
+                p."Precio" as price,
+                p."Imagen_URL" as image,
+                p."Stock",
+                p."ID_Vendedor",
+                v."Nombre_Tienda" as seller
             FROM carrito c
-            JOIN producto p ON c.ID_Producto = p.ID_Producto
-            LEFT JOIN vendedor v ON p.ID_Vendedor = v.ID_Vendedor
-            WHERE c.ID_Usuario = ?
+            JOIN producto p ON c."ID_Producto" = p."ID_Producto"
+            LEFT JOIN vendedor v ON p."ID_Vendedor" = v."ID_Vendedor"
+            WHERE c."ID_Usuario" = $1
         `, [userId]);
 
         console.log(`[GetCart] User ${userId} retrieved ${rows.length} items`);
@@ -32,9 +32,9 @@ exports.getCart = async (req, res) => {
 
 // Agregar al carrito (y reservar stock)
 exports.addToCart = async (req, res) => {
-    const connection = await pool.getConnection();
+    const client = await pool.connect();
     try {
-        await connection.beginTransaction();
+        await client.query('BEGIN');
 
         const userId = req.user.ID_Usuario;
         const { productId, quantity = 1 } = req.body;
@@ -42,8 +42,8 @@ exports.addToCart = async (req, res) => {
         console.log(`[AddToCart] User: ${userId}, Product: ${productId}, Qty: ${quantity}`);
 
         // 1. Verificar stock disponible
-        const [productRows] = await connection.query(
-            'SELECT Stock FROM producto WHERE ID_Producto = ? FOR UPDATE',
+        const { rows: productRows } = await client.query(
+            'SELECT "Stock" FROM producto WHERE "ID_Producto" = $1 FOR UPDATE',
             [productId]
         );
 
@@ -60,56 +60,56 @@ exports.addToCart = async (req, res) => {
         }
 
         // 2. Verificar si ya está en el carrito
-        const [cartRows] = await connection.query(
-            'SELECT Cantidad FROM carrito WHERE ID_Usuario = ? AND ID_Producto = ?',
+        const { rows: cartRows } = await client.query(
+            'SELECT "Cantidad" FROM carrito WHERE "ID_Usuario" = $1 AND "ID_Producto" = $2',
             [userId, productId]
         );
 
         if (cartRows.length > 0) {
             // Actualizar cantidad
-            await connection.query(
-                'UPDATE carrito SET Cantidad = Cantidad + ? WHERE ID_Usuario = ? AND ID_Producto = ?',
+            await client.query(
+                'UPDATE carrito SET "Cantidad" = "Cantidad" + $1 WHERE "ID_Usuario" = $2 AND "ID_Producto" = $3',
                 [quantity, userId, productId]
             );
         } else {
             // Insertar nuevo
-            await connection.query(
-                'INSERT INTO carrito (ID_Usuario, ID_Producto, Cantidad) VALUES (?, ?, ?)',
+            await client.query(
+                'INSERT INTO carrito ("ID_Usuario", "ID_Producto", "Cantidad") VALUES ($1, $2, $3)',
                 [userId, productId, quantity]
             );
         }
 
         // 3. Restar stock (RESERVAR)
-        await connection.query(
-            'UPDATE producto SET Stock = Stock - ? WHERE ID_Producto = ?',
+        await client.query(
+            'UPDATE producto SET "Stock" = "Stock" - $1 WHERE "ID_Producto" = $2',
             [quantity, productId]
         );
         console.log(`[AddToCart] Stock restado. Nuevo stock: ${stockDisponible - quantity}`);
 
-        await connection.commit();
+        await client.query('COMMIT');
         res.json({ message: 'Producto agregado y stock reservado' });
 
     } catch (error) {
-        await connection.rollback();
+        await client.query('ROLLBACK');
         console.error(error);
         res.status(500).json({ message: error.message || 'Error al agregar al carrito' });
     } finally {
-        connection.release();
+        client.release();
     }
 };
 
 // Remover del carrito (y liberar stock)
 exports.removeFromCart = async (req, res) => {
-    const connection = await pool.getConnection();
+    const client = await pool.connect();
     try {
-        await connection.beginTransaction();
+        await client.query('BEGIN');
 
         const userId = req.user.ID_Usuario;
         const productId = req.params.id;
 
         // 1. Obtener cantidad en carrito
-        const [cartRows] = await connection.query(
-            'SELECT Cantidad FROM carrito WHERE ID_Usuario = ? AND ID_Producto = ?',
+        const { rows: cartRows } = await client.query(
+            'SELECT "Cantidad" FROM carrito WHERE "ID_Usuario" = $1 AND "ID_Producto" = $2',
             [userId, productId]
         );
 
@@ -120,40 +120,40 @@ exports.removeFromCart = async (req, res) => {
         const quantityToRestore = cartRows[0].Cantidad;
 
         // 2. Eliminar del carrito
-        await connection.query(
-            'DELETE FROM carrito WHERE ID_Usuario = ? AND ID_Producto = ?',
+        await client.query(
+            'DELETE FROM carrito WHERE "ID_Usuario" = $1 AND "ID_Producto" = $2',
             [userId, productId]
         );
 
         // 3. Restaurar stock
-        await connection.query(
-            'UPDATE producto SET Stock = Stock + ? WHERE ID_Producto = ?',
+        await client.query(
+            'UPDATE producto SET "Stock" = "Stock" + $1 WHERE "ID_Producto" = $2',
             [quantityToRestore, productId]
         );
 
-        await connection.commit();
+        await client.query('COMMIT');
         res.json({ message: 'Producto eliminado y stock restaurado' });
 
     } catch (error) {
-        await connection.rollback();
+        await client.query('ROLLBACK');
         console.error(error);
         res.status(500).json({ message: 'Error al eliminar del carrito' });
     } finally {
-        connection.release();
+        client.release();
     }
 };
 
 // Disminuir cantidad (liberar 1 unidad de stock)
 exports.decreaseQuantity = async (req, res) => {
-    const connection = await pool.getConnection();
+    const client = await pool.connect();
     try {
-        await connection.beginTransaction();
+        await client.query('BEGIN');
 
         const userId = req.user.ID_Usuario;
         const productId = req.params.id;
 
-        const [cartRows] = await connection.query(
-            'SELECT Cantidad FROM carrito WHERE ID_Usuario = ? AND ID_Producto = ?',
+        const { rows: cartRows } = await client.query(
+            'SELECT "Cantidad" FROM carrito WHERE "ID_Usuario" = $1 AND "ID_Producto" = $2',
             [userId, productId]
         );
 
@@ -163,74 +163,74 @@ exports.decreaseQuantity = async (req, res) => {
 
         if (currentQty > 1) {
             // Disminuir en carrito
-            await connection.query(
-                'UPDATE carrito SET Cantidad = Cantidad - 1 WHERE ID_Usuario = ? AND ID_Producto = ?',
+            await client.query(
+                'UPDATE carrito SET "Cantidad" = "Cantidad" - 1 WHERE "ID_Usuario" = $1 AND "ID_Producto" = $2',
                 [userId, productId]
             );
             // Aumentar stock
-            await connection.query(
-                'UPDATE producto SET Stock = Stock + 1 WHERE ID_Producto = ?',
+            await client.query(
+                'UPDATE producto SET "Stock" = "Stock" + 1 WHERE "ID_Producto" = $1',
                 [productId]
             );
         } else {
             // Si es 1, eliminar y restaurar todo (reutilizar lógica o hacerlo aquí)
-            await connection.query('DELETE FROM carrito WHERE ID_Usuario = ? AND ID_Producto = ?', [userId, productId]);
-            await connection.query('UPDATE producto SET Stock = Stock + 1 WHERE ID_Producto = ?', [productId]);
+            await client.query('DELETE FROM carrito WHERE "ID_Usuario" = $1 AND "ID_Producto" = $2', [userId, productId]);
+            await client.query('UPDATE producto SET "Stock" = "Stock" + 1 WHERE "ID_Producto" = $1', [productId]);
         }
 
-        await connection.commit();
+        await client.query('COMMIT');
         res.json({ message: 'Cantidad actualizada' });
 
     } catch (error) {
-        await connection.rollback();
+        await client.query('ROLLBACK');
         res.status(500).json({ message: 'Error' });
     } finally {
-        connection.release();
+        client.release();
     }
 };
 
 // Vaciar carrito (liberar todo el stock)
 exports.clearCart = async (req, res) => {
-    const connection = await pool.getConnection();
+    const client = await pool.connect();
     try {
-        await connection.beginTransaction();
+        await client.query('BEGIN');
         const userId = req.user.ID_Usuario;
 
         // Obtener todos los items para saber cuánto restaurar
-        const [items] = await connection.query('SELECT ID_Producto, Cantidad FROM carrito WHERE ID_Usuario = ?', [userId]);
+        const { rows: items } = await client.query('SELECT "ID_Producto", "Cantidad" FROM carrito WHERE "ID_Usuario" = $1', [userId]);
 
         for (const item of items) {
-            await connection.query('UPDATE producto SET Stock = Stock + ? WHERE ID_Producto = ?', [item.Cantidad, item.ID_Producto]);
+            await client.query('UPDATE producto SET "Stock" = "Stock" + $1 WHERE "ID_Producto" = $2', [item.Cantidad, item.ID_Producto]);
         }
 
-        await connection.query('DELETE FROM carrito WHERE ID_Usuario = ?', [userId]);
+        await client.query('DELETE FROM carrito WHERE "ID_Usuario" = $1', [userId]);
 
-        await connection.commit();
+        await client.query('COMMIT');
         res.json({ message: 'Carrito vaciado y stock restaurado' });
     } catch (error) {
-        await connection.rollback();
+        await client.query('ROLLBACK');
         res.status(500).json({ message: 'Error al vaciar carrito' });
     } finally {
-        connection.release();
+        client.release();
     }
 };
 
 // Finalizar compra (vaciar carrito SIN restaurar stock)
 exports.finalizeCart = async (req, res) => {
-    const connection = await pool.getConnection();
+    const client = await pool.connect();
     try {
-        await connection.beginTransaction();
+        await client.query('BEGIN');
         const userId = req.user.ID_Usuario;
 
         // Solo eliminamos los items del carrito, el stock ya se restó al agregar
-        await connection.query('DELETE FROM carrito WHERE ID_Usuario = ?', [userId]);
+        await client.query('DELETE FROM carrito WHERE "ID_Usuario" = $1', [userId]);
 
-        await connection.commit();
+        await client.query('COMMIT');
         res.json({ message: 'Carrito finalizado' });
     } catch (error) {
-        await connection.rollback();
+        await client.query('ROLLBACK');
         res.status(500).json({ message: 'Error al finalizar carrito' });
     } finally {
-        connection.release();
+        client.release();
     }
 };

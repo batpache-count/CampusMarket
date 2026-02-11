@@ -4,8 +4,8 @@ class Notification {
     static async create(data) {
         const { ID_Usuario, Tipo, Mensaje, ID_Referencia } = data;
         const query = `
-            INSERT INTO notificacion (ID_Usuario, Tipo, Mensaje, ID_Referencia)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO notificacion ("ID_Usuario", "Tipo", "Mensaje", "ID_Referencia")
+            VALUES ($1, $2, $3, $4)
         `;
         try {
             await pool.query(query, [ID_Usuario, Tipo, Mensaje, ID_Referencia]);
@@ -17,11 +17,11 @@ class Notification {
     static async getByUserId(userId) {
         const query = `
             SELECT * FROM notificacion 
-            WHERE ID_Usuario = ? 
-            ORDER BY Fecha DESC
+            WHERE "ID_Usuario" = $1 
+            ORDER BY "Fecha" DESC
         `;
         try {
-            const [rows] = await pool.query(query, [userId]);
+            const { rows } = await pool.query(query, [userId]);
             return rows;
         } catch (error) {
             console.error('Error fetching notifications:', error);
@@ -30,7 +30,7 @@ class Notification {
     }
 
     static async markAsRead(notificationId) {
-        const query = `UPDATE notificacion SET Leido = TRUE WHERE ID_Notificacion = ?`;
+        const query = `UPDATE notificacion SET "Leido" = TRUE WHERE "ID_Notificacion" = $1`;
         try {
             await pool.query(query, [notificationId]);
         } catch (error) {
@@ -40,7 +40,7 @@ class Notification {
     }
 
     static async markAllAsRead(userId) {
-        const query = `UPDATE notificacion SET Leido = TRUE WHERE ID_Usuario = ?`;
+        const query = `UPDATE notificacion SET "Leido" = TRUE WHERE "ID_Usuario" = $1`;
         try {
             await pool.query(query, [userId]);
         } catch (error) {

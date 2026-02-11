@@ -31,17 +31,13 @@ const generateToken = (user, vendorProfile) => {
  * Endpoint: POST /api/auth/register
  */
 exports.register = async (req, res) => {
+    console.log('📝 [Register] Request Body:', JSON.stringify(req.body, null, 2));
     const { Nombre, Apellido_Paterno, Apellido_Materno, Email, Contrasena, Telefono } = req.body;
 
     // Validación básica
     if (!Email || !Contrasena || !Nombre || !Apellido_Paterno) {
         return res.status(400).json({ message: 'Faltan campos obligatorios (Nombre, Apellidos, Email, Contraseña).' });
     }
-
-    // Validación de dominio institucional (RF-S-001)
-    /* if (!Email.endsWith('@utm.edu.mx')) {
-        return res.status(400).json({ message: 'El registro está restringido a correos institucionales (@utm.edu.mx).' });
-    } */
 
     try {
         // 1. Verificar unicidad del correo (RF-C-001)
@@ -68,8 +64,19 @@ exports.register = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error en /register:', error);
-        res.status(500).json({ message: 'Error interno del servidor.' });
+        console.error('❌ [Register] Error:', error);
+
+        // Manejar error de email duplicado (Postgres Error Code 23505)
+        if (error.code === '23505') {
+            return res.status(400).json({
+                message: 'El correo electrónico ya está registrado.'
+            });
+        }
+
+        res.status(500).json({
+            message: 'Error interno del servidor.',
+            error: error.message
+        });
     }
 };
 
@@ -147,21 +154,29 @@ exports.updateProfile = async (req, res) => {
     const { Nombre, Apellido_Paterno, Apellido_Materno, Telefono, DeleteImage } = req.body;
 
     try {
-        let updateQuery = `
-            UPDATE usuario 
-            SET Nombre = ?, Apellido_Paterno = ?, Apellido_Materno = ?, Telefono = ?
-        `;
-        const params = [Nombre, Apellido_Paterno, Apellido_Materno, Telefono];
+        let updateQuery = `UPDATE usuario SET `;
+        const params = [];
+        let setClauses = [];
+        let paramIndex = 1;
+
+        if (Nombre) { setClauses.push(`"Nombre" = $${paramIndex++}`); params.push(Nombre); }
+        if (Apellido_Paterno) { setClauses.push(`"Apellido_Paterno" = $${paramIndex++}`); params.push(Apellido_Paterno); }
+        if (Apellido_Materno) { setClauses.push(`"Apellido_Materno" = $${paramIndex++}`); params.push(Apellido_Materno); }
+        if (Telefono) { setClauses.push(`"Telefono" = $${paramIndex++}`); params.push(Telefono); }
 
         // Manejo de Imagen
         if (req.file) {
-            updateQuery += `, Imagen_URL = ?`;
+            setClauses.push(`"Imagen_URL" = $${paramIndex++}`);
             params.push(req.file.filename);
         } else if (DeleteImage === 'true') {
-            updateQuery += `, Imagen_URL = NULL`;
+            setClauses.push(`"Imagen_URL" = NULL`);
         }
 
-        updateQuery += ` WHERE ID_Usuario = ?`;
+        if (setClauses.length === 0) {
+            return res.status(400).json({ message: 'No hay datos para actualizar.' });
+        }
+
+        updateQuery += setClauses.join(', ') + ` WHERE "ID_Usuario" = $${paramIndex}`;
         params.push(userId);
 
         await pool.query(updateQuery, params);
@@ -174,7 +189,7 @@ exports.updateProfile = async (req, res) => {
                 id: updatedUser.ID_Usuario,
                 nombre: updatedUser.Nombre,
                 apellido_paterno: updatedUser.Apellido_Paterno,
-                apellido_materno: updatedUser.Apellido_Materno, // Se añadió al modelo si no estaba
+                apellido_materno: updatedUser.Apellido_Materno,
                 email: updatedUser.Email,
                 telefono: updatedUser.Telefono,
                 rol: updatedUser.Rol,
@@ -202,7 +217,7 @@ exports.changePassword = async (req, res) => {
     }
 
     try {
-        const [rows] = await pool.query('SELECT Contrasena FROM usuario WHERE ID_Usuario = ?', [userId]);
+        const { rows } = await pool.query('SELECT "Contrasena" FROM usuario WHERE "ID_Usuario" = $1', [userId]);
 
         if (rows.length === 0) {
             return res.status(404).json({ message: 'Usuario no encontrado.' });
@@ -218,7 +233,7 @@ exports.changePassword = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedNewPassword = await bcrypt.hash(newPassword, salt);
 
-        await pool.query('UPDATE usuario SET Contrasena = ? WHERE ID_Usuario = ?', [hashedNewPassword, userId]);
+        await pool.query('UPDATE usuario SET "Contrasena" = $1 WHERE "ID_Usuario" = $2', [hashedNewPassword, userId]);
 
         res.json({ message: 'Contraseña actualizada exitosamente.' });
 

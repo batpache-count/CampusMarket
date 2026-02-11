@@ -1,27 +1,31 @@
 // config/database.js
-const mysql = require('mysql2/promise');
-require('dotenv').config(); 
+const { Pool } = require('pg');
+require('dotenv').config();
 
-const pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
-    decimalNumbers: true 
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+    console.error('❌ DATABASE_URL no está definida en el archivo .env');
+} else {
+    console.log('🔌 Intentando conectar a:', connectionString.replace(/:[^:@]*@/, ':****@'));
+}
+
+const pool = new Pool({
+    connectionString: connectionString,
+    ssl: {
+        rejectUnauthorized: false
+    }
 });
 
-async function connectDB() {
+const connectDB = async () => {
     try {
-        const connection = await pool.getConnection();
-        console.log('✅ Conexión exitosa a la base de datos.');
-        connection.release();
+        const client = await pool.connect();
+        console.log('✅ Conexión exitosa a la base de datos (PostgreSQL/Supabase).');
+        client.release();
     } catch (error) {
-        console.error('❌ Error al conectar con la base de datos:', error.message);
-        process.exit(1);
+        console.error('❌ Error al conectar con la base de datos:', error);
+        // No salimos del proceso para permitir que nodemon lo reintente o para ver el error completo
     }
-}
+};
 
 module.exports = { pool, connectDB };

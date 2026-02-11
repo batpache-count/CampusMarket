@@ -15,12 +15,13 @@ class Ubicacion {
     static async create(idVendedor, data) {
         const { Nombre_Ubicacion, Descripcion } = data;
         const query = `
-            INSERT INTO ubicacion_entrega (ID_Vendedor, Nombre_Ubicacion, Descripcion, Activa)
-            VALUES (?, ?, ?, 1) -- Por defecto se crea como Activa
+            INSERT INTO ubicacion_entrega ("ID_Vendedor", "Nombre_Ubicacion", "Descripcion", "Activa")
+            VALUES ($1, $2, $3, TRUE) 
+            RETURNING "ID_Ubicacion"
         `;
         try {
-            const [result] = await pool.query(query, [idVendedor, Nombre_Ubicacion, Descripcion || null]);
-            return { id: result.insertId };
+            const { rows } = await pool.query(query, [idVendedor, Nombre_Ubicacion, Descripcion || null]);
+            return { id: rows[0].ID_Ubicacion };
         } catch (error) {
             console.error('Error en Ubicacion.create:', error);
             throw error;
@@ -34,13 +35,13 @@ class Ubicacion {
      */
     static async findByVendor(idVendedor) {
         const query = `
-            SELECT ID_Ubicacion, Nombre_Ubicacion, Descripcion, Activa
+            SELECT "ID_Ubicacion", "Nombre_Ubicacion", "Descripcion", "Activa"
             FROM ubicacion_entrega
-            WHERE ID_Vendedor = ?
-            ORDER BY Activa DESC, Nombre_Ubicacion ASC
+            WHERE "ID_Vendedor" = $1
+            ORDER BY "Activa" DESC, "Nombre_Ubicacion" ASC
         `;
         try {
-            const [rows] = await pool.query(query, [idVendedor]);
+            const { rows } = await pool.query(query, [idVendedor]);
             return rows;
         } catch (error) {
             console.error('Error en Ubicacion.findByVendor:', error);
@@ -54,9 +55,9 @@ class Ubicacion {
      * @returns {object|null} La ubicación.
      */
     static async findById(idUbicacion) {
-        const query = `SELECT * FROM ubicacion_entrega WHERE ID_Ubicacion = ?`;
+        const query = `SELECT * FROM ubicacion_entrega WHERE "ID_Ubicacion" = $1`;
         try {
-            const [rows] = await pool.query(query, [idUbicacion]);
+            const { rows } = await pool.query(query, [idUbicacion]);
             return rows[0] || null;
         } catch (error) {
             console.error('Error en Ubicacion.findById:', error);
@@ -74,12 +75,12 @@ class Ubicacion {
         const { Nombre_Ubicacion, Descripcion, Activa } = data;
         const query = `
             UPDATE ubicacion_entrega
-            SET Nombre_Ubicacion = ?, Descripcion = ?, Activa = ?
-            WHERE ID_Ubicacion = ?
+            SET "Nombre_Ubicacion" = $1, "Descripcion" = $2, "Activa" = $3
+            WHERE "ID_Ubicacion" = $4
         `;
         try {
-            const [result] = await pool.query(query, [Nombre_Ubicacion, Descripcion || null, Activa, idUbicacion]);
-            return result.affectedRows > 0;
+            const result = await pool.query(query, [Nombre_Ubicacion, Descripcion || null, Activa, idUbicacion]);
+            return result.rowCount > 0;
         } catch (error) {
             console.error('Error en Ubicacion.update:', error);
             throw error;
@@ -94,14 +95,14 @@ class Ubicacion {
     static async hasActiveOrders(idUbicacion) {
         const query = `
             SELECT 1 
-            FROM ubicacion_entrega_pedido uep
-            JOIN pedido p ON uep.ID_Pedido = p.ID_Pedido
-            WHERE uep.ID_Ubicacion_Entrega = ?
-            AND p.Estado_Pedido IN ('Pendiente', 'En preparacion', 'Listo para entrega')
+            FROM encuentro e
+            JOIN pedido p ON e."ID_Pedido" = p."ID_Pedido"
+            WHERE e."ID_Ubicacion" = $1
+            AND p."Estado_Pedido" IN ('Pendiente', 'En preparacion', 'Listo')
             LIMIT 1
         `;
         try {
-            const [rows] = await pool.query(query, [idUbicacion]);
+            const { rows } = await pool.query(query, [idUbicacion]);
             return rows.length > 0;
         } catch (error) {
             console.error('Error en Ubicacion.hasActiveOrders:', error);
@@ -115,10 +116,10 @@ class Ubicacion {
      * @returns {boolean} Éxito.
      */
     static async delete(idUbicacion) {
-        const query = `DELETE FROM ubicacion_entrega WHERE ID_Ubicacion = ?`;
+        const query = `DELETE FROM ubicacion_entrega WHERE "ID_Ubicacion" = $1`;
         try {
-            const [result] = await pool.query(query, [idUbicacion]);
-            return result.affectedRows > 0;
+            const result = await pool.query(query, [idUbicacion]);
+            return result.rowCount > 0;
         } catch (error) {
             console.error('Error en Ubicacion.delete:', error);
             throw error;

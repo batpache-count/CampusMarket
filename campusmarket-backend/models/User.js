@@ -20,12 +20,13 @@ class User {
         const hashedPassword = await bcrypt.hash(Contrasena, 10);
 
         const query = `
-            INSERT INTO usuario (Nombre, Apellido_Paterno, Apellido_Materno, Email, Contrasena, Telefono, Rol)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO usuario ("Nombre", "Apellido_Paterno", "Apellido_Materno", "Email", "Contrasena", "Telefono", "Rol")
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING "ID_Usuario"
         `;
 
         try {
-            const [result] = await pool.query(query, [
+            const { rows } = await pool.query(query, [
                 Nombre,
                 Apellido_Paterno,
                 Apellido_Materno,
@@ -34,7 +35,7 @@ class User {
                 Telefono || null,
                 Rol || 'Comprador'
             ]);
-            return { id: result.insertId };
+            return { id: rows[0].ID_Usuario };
         } catch (error) {
             console.error('Error en User.create:', error);
             throw error;
@@ -51,10 +52,10 @@ class User {
     static async findByEmail(email) {
         const query = `
             SELECT * FROM usuario 
-            WHERE Email = ?
+            WHERE "Email" = $1
         `;
         try {
-            const [rows] = await pool.query(query, [email]);
+            const { rows } = await pool.query(query, [email]);
             return rows[0] || null;
         } catch (error) {
             console.error('Error en User.findByEmail:', error);
@@ -70,12 +71,12 @@ class User {
      */
     static async findById(id) {
         const query = `
-            SELECT ID_Usuario, Nombre, Apellido_Paterno, Email, Telefono, Rol, Imagen_URL 
+            SELECT "ID_Usuario", "Nombre", "Apellido_Paterno", "Email", "Telefono", "Rol", "Imagen_URL" 
             FROM usuario 
-            WHERE ID_Usuario = ?
+            WHERE "ID_Usuario" = $1
         `;
         try {
-            const [rows] = await pool.query(query, [id]);
+            const { rows } = await pool.query(query, [id]);
             return rows[0] || null;
         } catch (error) {
             console.error('Error en User.findById:', error);
@@ -91,10 +92,10 @@ class User {
     static async findVendorProfileByUserId(userId) {
         const query = `
             SELECT * FROM vendedor 
-            WHERE ID_Usuario = ?
+            WHERE "ID_Usuario" = $1
         `;
         try {
-            const [rows] = await pool.query(query, [userId]);
+            const { rows } = await pool.query(query, [userId]);
             return rows[0] || null;
         } catch (error) {
             console.error('Error en User.findVendorProfile:', error);
@@ -109,11 +110,11 @@ class User {
      */
     static async findUserByVendorId(vendorId) {
         const query = `
-            SELECT ID_Usuario FROM vendedor 
-            WHERE ID_Vendedor = ?
+            SELECT "ID_Usuario" FROM vendedor 
+            WHERE "ID_Vendedor" = $1
         `;
         try {
-            const [rows] = await pool.query(query, [vendorId]);
+            const { rows } = await pool.query(query, [vendorId]);
             return rows[0] || null;
         } catch (error) {
             console.error('Error en User.findUserByVendorId:', error);
@@ -130,45 +131,44 @@ class User {
      */
     static async becomeSeller(userId, storeData) {
         const { Nombre_Tienda, Descripcion_Tienda } = storeData;
-        const connection = await pool.getConnection(); // Iniciar transacción
+        const client = await pool.connect(); // Iniciar transacción
 
         try {
-            await connection.beginTransaction();
+            await client.query('BEGIN');
 
             // 1. Actualizar el rol del usuario
-            // Eliminamos "AND Rol = 'Comprador'" para permitir que usuarios que YA son Vendedor (pero rotos) se arreglen.
             const updateUserQuery = `
                 UPDATE usuario 
-                SET Rol = 'Vendedor' 
-                WHERE ID_Usuario = ?
+                SET "Rol" = 'Vendedor' 
+                WHERE "ID_Usuario" = $1
             `;
-            await connection.query(updateUserQuery, [userId]);
+            await client.query(updateUserQuery, [userId]);
 
             // 2. Insertar el perfil en la tabla 'vendedor'
-            // Usamos INSERT IGNORE o manejamos el error si ya existe, aunque en este caso asumimos que no existe.
             const insertVendorQuery = `
-                INSERT INTO vendedor (ID_Usuario, Nombre_Tienda, Descripcion_Tienda)
-                VALUES (?, ?, ?)
+                INSERT INTO vendedor ("ID_Usuario", "Nombre_Tienda", "Descripcion_Tienda")
+                VALUES ($1, $2, $3)
+                RETURNING "ID_Vendedor"
             `;
-            const [result] = await connection.query(insertVendorQuery, [
+            const { rows } = await client.query(insertVendorQuery, [
                 userId,
                 Nombre_Tienda,
                 Descripcion_Tienda || null
             ]);
 
-            await connection.commit(); // Confirmar transacción
+            await client.query('COMMIT'); // Confirmar transacción
 
             return {
-                ID_Vendedor: result.insertId,
+                ID_Vendedor: rows[0].ID_Vendedor,
                 Nombre_Tienda: Nombre_Tienda
             };
 
         } catch (error) {
-            await connection.rollback(); // Revertir en caso de error
+            await client.query('ROLLBACK'); // Revertir en caso de error
             console.error('Error en User.becomeSeller:', error);
             throw error;
         } finally {
-            connection.release();
+            client.release();
         }
     }
 
@@ -187,21 +187,19 @@ class User {
             Tiempo_Retraso_Comida_Min
         } = profileData;
 
-        // Construir la consulta dinámicamente es más seguro, 
-        // pero para este MVP asumimos que todos los campos vienen del form.
         const query = `
             UPDATE vendedor 
             SET 
-                Nombre_Tienda = ?,
-                Descripcion_Tienda = ?,
-                Estado_Tienda = ?,
-                Tiempo_Arrepentimiento_Min = ?,
-                Tiempo_Retraso_Comida_Min = ?
-            WHERE ID_Vendedor = ?
+                "Nombre_Tienda" = $1,
+                "Descripcion_Tienda" = $2,
+                "Estado_Tienda" = $3,
+                "Tiempo_Arrepentimiento_Min" = $4,
+                "Tiempo_Retraso_Comida_Min" = $5
+            WHERE "ID_Vendedor" = $6
         `;
 
         try {
-            const [result] = await pool.query(query, [
+            const result = await pool.query(query, [
                 Nombre_Tienda,
                 Descripcion_Tienda,
                 Estado_Tienda,
@@ -209,7 +207,7 @@ class User {
                 Tiempo_Retraso_Comida_Min,
                 vendorId
             ]);
-            return result.affectedRows > 0;
+            return result.rowCount > 0;
         } catch (error) {
             console.error('Error en User.updateSellerProfile:', error);
             throw error;

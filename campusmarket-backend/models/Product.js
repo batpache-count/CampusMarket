@@ -1,35 +1,39 @@
 const { pool } = require('../config/database');
 
+/**
+ * Modelo para gestionar productos (RF-V-002, 003, 004, 005)
+ */
 class Product {
 
     /**
-     * Crea un nuevo producto (RF-V-002)
-     * @param {object} productData - Datos del producto.
-     * @returns {object} El ID del nuevo producto.
+     * Crea un nuevo producto (RF-V-002).
+     * @param {number} idVendedor - ID_Vendedor.
+     * @param {object} productData - { ID_Categoria, Nombre, Descripcion, Precio, Stock, Imagen_URL }
+     * @returns {object} El ID del producto creado.
      */
     static async create(productData) {
-        const { ID_Vendedor, Nombre, Descripcion, Precio, ID_Categoria, Stock, Imagen_URL } = productData;
+        const { ID_Vendedor, ID_Categoria, Nombre, Descripcion, Precio, Stock, Imagen_URL } = productData;
 
-        // RF-V-002: Si Stock > 0, Activo = 1
-        const Activo = (Stock > 0) ? 1 : 0; 
-        
+        // RF-V-002: Si Stock > 0, Activo = 1 (true)
+        const Activo = (Stock > 0);
+
         const query = `
-            INSERT INTO producto 
-                (ID_Vendedor, Nombre, Descripcion, Precio, ID_Categoria, Stock, Imagen_URL, Activo)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO producto ("ID_Vendedor", "ID_Categoria", "Nombre", "Descripcion", "Precio", "Stock", "Imagen_URL", "Activo")
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            RETURNING "ID_Producto"
         `;
         try {
-            const [result] = await pool.query(query, [
+            const { rows } = await pool.query(query, [
                 ID_Vendedor,
+                ID_Categoria,
                 Nombre,
                 Descripcion || null,
                 Precio,
-                ID_Categoria,
                 Stock,
                 Imagen_URL || 'no-image.jpg',
                 Activo
             ]);
-            return { id: result.insertId };
+            return { id: rows[0].ID_Producto };
         } catch (error) {
             console.error('Error en Product.create:', error);
             throw error;
@@ -37,26 +41,24 @@ class Product {
     }
 
     /**
-     * Actualiza un producto (RF-V-003)
-     * @param {number} productId - ID del producto a actualizar.
+     * Actualiza un producto (RF-V-003).
+     * @param {number} idProducto - ID_Producto.
      * @param {object} productData - Datos a actualizar.
      * @returns {boolean} Éxito.
      */
-    static async update(productId, productData) {
+    static async update(idProducto, productData) {
         const { Nombre, Descripcion, Precio, ID_Categoria, Stock, Imagen_URL } = productData;
-        
+
         // RF-V-003: Recalcular estado Activo basado en stock
-        const Activo = (Stock > 0) ? 1 : 0;
+        const Activo = (Stock > 0);
 
         const query = `
-            UPDATE producto 
-            SET 
-                Nombre = ?, Descripcion = ?, Precio = ?, ID_Categoria = ?, 
-                Stock = ?, Imagen_URL = ?, Activo = ?
-            WHERE ID_Producto = ?
+            UPDATE producto
+            SET "Nombre" = $1, "Descripcion" = $2, "Precio" = $3, "ID_Categoria" = $4, "Stock" = $5, "Imagen_URL" = $6, "Activo" = $7
+            WHERE "ID_Producto" = $8
         `;
         try {
-            const [result] = await pool.query(query, [
+            const result = await pool.query(query, [
                 Nombre,
                 Descripcion || null,
                 Precio,
@@ -64,9 +66,9 @@ class Product {
                 Stock,
                 Imagen_URL || 'no-image.jpg',
                 Activo,
-                productId
+                idProducto
             ]);
-            return result.affectedRows > 0;
+            return result.rowCount > 0;
         } catch (error) {
             console.error('Error en Product.update:', error);
             throw error;
@@ -74,20 +76,15 @@ class Product {
     }
 
     /**
-     * Desactiva un producto (Baja Lógica - RF-V-004)
-     * (El RF-V-004 pide DELETE, pero la DB (campo 'Activo') sugiere baja lógica, que es más segura)
-     * @param {number} productId - ID del producto a desactivar.
+     * Desactiva un producto (Baja Lógica - RF-V-004).
+     * @param {number} idProducto - ID_Producto.
      * @returns {boolean} Éxito.
      */
-    static async deactivate(productId) {
-        const query = `
-            UPDATE producto 
-            SET Activo = 0 
-            WHERE ID_Producto = ?
-        `;
+    static async deactivate(idProducto) {
+        const query = `UPDATE producto SET "Activo" = FALSE WHERE "ID_Producto" = $1`;
         try {
-            const [result] = await pool.query(query, [productId]);
-            return result.affectedRows > 0;
+            const result = await pool.query(query, [idProducto]);
+            return result.rowCount > 0;
         } catch (error) {
             console.error('Error en Product.deactivate:', error);
             throw error;
@@ -95,14 +92,29 @@ class Product {
     }
 
     /**
-     * Busca un producto por su ID.
-     * @param {number} id - ID_Producto.
-     * @returns {object|null} El producto.
+     * Busca un producto por ID.
+     * @param {number} idProducto - ID_Producto.
+     * @returns {object|null} Detalles del producto.
      */
-    static async findById(id) {
-        const query = `SELECT * FROM producto WHERE ID_Producto = ?`;
+    static async findById(idProducto) {
+        // En Postgres COALESCE reemplaza a IFNULL
+        const query = `
+            SELECT 
+                p.*,
+                v."Nombre_Tienda",
+                v."ID_Usuario" as "ID_Usuario_Vendedor",
+                c."Nombre" as "Nombre_Categoria",
+                COALESCE(AVG(cal."Puntuacion"), 0) as "Promedio_Calificacion",
+                COUNT(cal."ID_Calificacion") as "Total_Calificaciones"
+            FROM producto p
+            JOIN vendedor v ON p."ID_Vendedor" = v."ID_Vendedor"
+            JOIN categoria c ON p."ID_Categoria" = c."ID_Categoria"
+            LEFT JOIN calificacion_producto cal ON p."ID_Producto" = cal."ID_Producto"
+            WHERE p."ID_Producto" = $1
+            GROUP BY p."ID_Producto", v."Nombre_Tienda", v."ID_Usuario", c."Nombre"
+        `;
         try {
-            const [rows] = await pool.query(query, [id]);
+            const { rows } = await pool.query(query, [idProducto]);
             return rows[0] || null;
         } catch (error) {
             console.error('Error en Product.findById:', error);
@@ -111,25 +123,63 @@ class Product {
     }
 
     /**
-     * Devuelve el catálogo público (RF-C-002)
-     * Solo productos Activos y con Stock > 0.
+     * Catálogo público con filtros y paginación (RF-C-002).
      */
-    static async getPublicCatalog() {
-        const query = `
+    static async getPublicCatalog(filters) {
+        // Si no hay filtros, filters puede ser undefined, así que lo inicializamos
+        const { topic, search, minPrice, maxPrice, limit, offset, excludeSellerId } = filters || {};
+
+        // Base query
+        let sql = `
             SELECT 
-                p.ID_Producto, p.Nombre, p.Descripcion, p.Precio, p.Imagen_URL,
-                c.Nombre AS Categoria_Nombre,
-                v.ID_Vendedor, v.Nombre_Tienda, v.Estado_Tienda
+                p."ID_Producto", p."Nombre", p."Precio", p."Imagen_URL", p."Stock", p."ID_Categoria",
+                v."Nombre_Tienda",
+                c."Nombre" as "Nombre_Categoria"
             FROM producto p
-            JOIN categoria c ON p.ID_Categoria = c.ID_Categoria
-            JOIN vendedor v ON p.ID_Vendedor = v.ID_Vendedor
-            WHERE 
-                p.Activo = 1 
-                AND p.Stock > 0
-                AND v.Estado_Tienda = 'En Linea' -- (RF-C-009)
+            JOIN vendedor v ON p."ID_Vendedor" = v."ID_Vendedor"
+            JOIN categoria c ON p."ID_Categoria" = c."ID_Categoria"
+            WHERE p."Activo" = TRUE AND p."Stock" > 0 AND v."Estado_Tienda" = 'En Linea'
         `;
+
+        const params = [];
+        let paramIndex = 1;
+
+        if (topic) {
+            // Asumimos que "topic" es el ID de categoría o nombre.
+            // El código original usaba ID_Categoria = ?.
+            // Necesitamos saber qué viene en 'topic'. Si es numero es ID.
+            if (!isNaN(topic)) {
+                sql += ` AND p."ID_Categoria" = $${paramIndex++}`;
+                params.push(topic);
+            }
+        }
+
+        if (search) {
+            sql += ` AND (p."Nombre" ILIKE $${paramIndex} OR p."Descripcion" ILIKE $${paramIndex})`;
+            params.push(`%${search}%`);
+            paramIndex++;
+        }
+
+        if (minPrice) {
+            sql += ` AND p."Precio" >= $${paramIndex++}`;
+            params.push(minPrice);
+        }
+
+        if (maxPrice) {
+            sql += ` AND p."Precio" <= $${paramIndex++}`;
+            params.push(maxPrice);
+        }
+
+        if (excludeSellerId) {
+            sql += ` AND p."ID_Vendedor" != $${paramIndex++}`;
+            params.push(excludeSellerId);
+        }
+
+        sql += ` ORDER BY p."Fecha_Creacion" DESC LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
+        params.push(limit || 20, offset || 0);
+
         try {
-            const [rows] = await pool.query(query);
+            const { rows } = await pool.query(sql, params);
             return rows;
         } catch (error) {
             console.error('Error en Product.getPublicCatalog:', error);
@@ -138,21 +188,21 @@ class Product {
     }
 
     /**
-     * Devuelve el inventario completo de un vendedor (RF-V-002)
-     * Incluye productos activos e inactivos.
+     * Obtiene todos los productos de un vendedor (Dashboard).
+     * @param {number} idVendedor - ID_Vendedor.
+     * @returns {Array} Lista de productos.
      */
-    static async getInventoryByVendor(vendorId) {
+    static async getInventoryByVendor(idVendedor) {
         const query = `
-            SELECT 
-                p.ID_Producto, p.Nombre, p.Precio, p.Stock, p.Activo,
-                c.Nombre AS Categoria_Nombre
+            SELECT "ID_Producto", "Nombre", "Precio", "Stock", "Imagen_URL", "Activo",
+                c."Nombre" as "Categoria_Nombre"
             FROM producto p
-            JOIN categoria c ON p.ID_Categoria = c.ID_Categoria
-            WHERE p.ID_Vendedor = ?
-            ORDER BY p.Activo DESC, p.Nombre ASC
+            JOIN categoria c ON p."ID_Categoria" = c."ID_Categoria"
+            WHERE "ID_Vendedor" = $1
+            ORDER BY "Fecha_Creacion" DESC
         `;
-         try {
-            const [rows] = await pool.query(query, [vendorId]);
+        try {
+            const { rows } = await pool.query(query, [idVendedor]);
             return rows;
         } catch (error) {
             console.error('Error en Product.getInventoryByVendor:', error);
@@ -160,16 +210,12 @@ class Product {
         }
     }
 
-    /**
-     * Devuelve todas las categorías (RF-C-002)
-     */
-    static async getAllCategories() {
-        const query = `SELECT * FROM categoria ORDER BY Nombre ASC`;
-         try {
-            const [rows] = await pool.query(query);
+    static async getCategories() {
+        try {
+            const { rows } = await pool.query('SELECT * FROM categoria');
             return rows;
         } catch (error) {
-            console.error('Error en Product.getAllCategories:', error);
+            console.error('Error en Product.getCategories:', error);
             throw error;
         }
     }

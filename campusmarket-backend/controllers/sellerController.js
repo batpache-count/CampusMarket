@@ -14,8 +14,8 @@ exports.getMyProducts = async (req, res) => {
         }
 
         // Consultar productos
-        const [products] = await pool.query(
-            'SELECT * FROM producto WHERE ID_Vendedor = ? ORDER BY ID_Producto DESC',
+        const { rows: products } = await pool.query(
+            'SELECT * FROM producto WHERE "ID_Vendedor" = $1 ORDER BY "ID_Producto" DESC',
             [vendorProfile.ID_Vendedor]
         );
 
@@ -32,7 +32,7 @@ exports.getMyProducts = async (req, res) => {
 exports.deleteProduct = async (req, res) => {
     try {
         const productId = req.params.id;
-        await pool.query('DELETE FROM producto WHERE ID_Producto = ?', [productId]);
+        await pool.query('DELETE FROM producto WHERE "ID_Producto" = $1', [productId]);
         res.status(200).json({ message: 'Producto eliminado.' });
     } catch (error) {
         console.error('Error en deleteProduct:', error);
@@ -70,7 +70,9 @@ exports.updateSellerProfile = async (req, res) => {
         // Normalizar nombres de campos del frontend
         const normalizedData = {
             Nombre_Tienda: req.body.nombre_tienda || req.body.Nombre_Tienda,
-            Descripcion_Tienda: req.body.descripcion_tienda || req.body.Descripcion_Tienda
+            Descripcion_Tienda: req.body.descripcion_tienda || req.body.Descripcion_Tienda,
+            Tiempo_Arrepentimiento_Min: req.body.tiempo_arrepentimiento_min,
+            Tiempo_Retraso_Comida_Min: req.body.tiempo_retraso_comida_min
         };
 
         await User.updateSellerProfile(vendorProfile.ID_Vendedor, normalizedData);
@@ -92,7 +94,7 @@ exports.uploadSellerPhoto = async (req, res) => {
         if (!vendorProfile) return res.status(404).json({ message: 'Vendedor no encontrado.' });
 
         const photoUrl = req.file.filename;
-        await pool.query('UPDATE vendedor SET Foto_Perfil = ? WHERE ID_Vendedor = ?', [photoUrl, vendorProfile.ID_Vendedor]);
+        await pool.query('UPDATE vendedor SET "Foto_Perfil" = $1 WHERE "ID_Vendedor" = $2', [photoUrl, vendorProfile.ID_Vendedor]);
 
         res.status(200).json({ message: 'Foto actualizada', photoUrl });
     } catch (error) {
@@ -101,8 +103,7 @@ exports.uploadSellerPhoto = async (req, res) => {
 };
 
 /**
- * 6. Obtener Perfil Completo (ESTA ES LA QUE FALTABA)
- * Sirve para cargar la foto y el nombre cuando entras al Dashboard.
+ * 6. Obtener Perfil Completo
  */
 exports.getSellerProfile = async (req, res) => {
     try {
@@ -139,46 +140,46 @@ exports.getDashboardStats = async (req, res) => {
 
         // Ejecutamos consultas en paralelo para mayor velocidad
         const [
-            [totalSalesResult],
-            [completedOrdersResult],
-            [pendingOrdersResult],
-            [activeProductsResult]
+            totalSalesResult,
+            completedOrdersResult,
+            pendingOrdersResult,
+            activeProductsResult
         ] = await Promise.all([
             // 1. Ingresos Totales (Solo pedidos Entregados)
             pool.query(
-                `SELECT COALESCE(SUM(Precio_Total), 0) AS total 
+                `SELECT COALESCE(SUM("Precio_Total"), 0) AS total 
                  FROM pedido 
-                 WHERE ID_Vendedor = ? AND Estado_Pedido = 'Entregado'`,
+                 WHERE "ID_Vendedor" = $1 AND "Estado_Pedido" = 'Entregado'`,
                 [idVendedor]
             ),
             // 2. Pedidos Completados
             pool.query(
                 `SELECT COUNT(*) AS count 
                  FROM pedido 
-                 WHERE ID_Vendedor = ? AND Estado_Pedido = 'Entregado'`,
+                 WHERE "ID_Vendedor" = $1 AND "Estado_Pedido" = 'Entregado'`,
                 [idVendedor]
             ),
             // 3. Pedidos Pendientes (Pendiente o En preparacion)
             pool.query(
                 `SELECT COUNT(*) AS count 
                  FROM pedido 
-                 WHERE ID_Vendedor = ? AND Estado_Pedido IN ('Pendiente', 'En preparacion')`,
+                 WHERE "ID_Vendedor" = $1 AND "Estado_Pedido" IN ('Pendiente', 'En preparacion')`,
                 [idVendedor]
             ),
             // 4. Productos Activos
             pool.query(
                 `SELECT COUNT(*) AS count 
                  FROM producto 
-                 WHERE ID_Vendedor = ? AND Activo = 1`, // Asumiendo que 1 es activo
+                 WHERE "ID_Vendedor" = $1 AND "Activo" = TRUE`,
                 [idVendedor]
             )
         ]);
 
         res.status(200).json({
-            ingresos_totales: Number(totalSalesResult[0].total),
-            pedidos_completados: Number(completedOrdersResult[0].count),
-            pedidos_pendientes: Number(pendingOrdersResult[0].count),
-            productos_activos: Number(activeProductsResult[0].count)
+            ingresos_totales: Number(totalSalesResult.rows[0].total),
+            pedidos_completados: Number(completedOrdersResult.rows[0].count),
+            pedidos_pendientes: Number(pendingOrdersResult.rows[0].count),
+            productos_activos: Number(activeProductsResult.rows[0].count)
         });
 
     } catch (error) {
