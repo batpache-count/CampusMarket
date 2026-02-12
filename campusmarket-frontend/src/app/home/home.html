@@ -102,10 +102,9 @@
             <span class="badge-sold-out" *ngIf="isOutOfStock(item)">AGOTADO</span>
 
             <!-- IMAGEN SEGURA -->
-            <img
-              [src]="(item.Imagen_URL || item.imagen_url || item.image) ? 'http://localhost:3000/uploads/' + (item.Imagen_URL || item.imagen_url || item.image) : 'assets/placeholder.svg'"
-              alt="{{ item.Nombre }}" style="cursor: pointer;" (click)="viewProduct(item.ID_Producto || item.id)"
-              onerror="this.src='assets/placeholder.svg'">
+            <img [src]="getImageUrl(item)" alt="{{ item.Nombre }}" style="cursor: pointer;"
+              (click)="viewProduct(item.ID_Producto || item.id)" onerror="this.src='assets/placeholder.svg'">
+
           </div>
 
           <div class="card-info">

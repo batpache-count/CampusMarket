@@ -25,6 +25,7 @@ export class Home implements OnInit {
   searchTerm: string = '';
 
   cartCount: number = 0;
+  apiUrl: string = 'http://localhost:3000';
   currentTheme: string; // Add currentTheme property
 
   constructor(
@@ -200,8 +201,17 @@ export class Home implements OnInit {
     this.router.navigate(['/profile']);
   }
 
+  getImageUrl(product: any): string {
+    if (!product) return 'assets/placeholder.svg';
+    const imageName = product.Imagen_URL || product.imagen_url || product.image;
+    if (!imageName) return 'assets/placeholder.svg';
+    if (imageName.startsWith('http')) return imageName;
+    return `${this.apiUrl}/uploads/${imageName}`;
+  }
+
   logout() {
     this.authService.logout();
     this.router.navigate(['/login']);
   }
 }
+

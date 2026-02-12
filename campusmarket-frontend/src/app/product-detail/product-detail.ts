@@ -24,6 +24,8 @@ export class ProductDetail implements OnInit {
   reviews: any[] = [];
   isFavorite: boolean = false;
   comment: string = '';
+  apiUrl: string = 'http://localhost:3000';
+
 
   // Calificaciones
   userRating: number = 0;
@@ -118,4 +120,11 @@ export class ProductDetail implements OnInit {
   // Métodos de calificación interactiva eliminados.
   // La calificación ahora se realiza exclusivamente desde "Mis Pedidos" (MyOrdersComponent)
   // para garantizar que solo se califiquen compras verificadas y entregadas.
+  getImageUrl(product: any): string {
+    if (!product) return 'assets/placeholder.svg';
+    const imageName = product.Imagen_URL || product.imagen_url || product.image;
+    if (!imageName) return 'assets/placeholder.svg';
+    if (imageName.startsWith('http')) return imageName;
+    return `${this.apiUrl}/uploads/${imageName}`;
+  }
 }
