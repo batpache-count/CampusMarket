@@ -32,14 +32,20 @@ const uploadsPath = path.join(process.cwd(), 'uploads');
 
 // Middleware específico para servir imágenes sin bloqueos
 app.use('/uploads', (req, res, next) => {
-    // Cabeceras para evitar bloqueos del navegador (CORP)
+    console.log(`🖼️ Solicitud de imagen: ${req.url}`);
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Cross-Origin-Resource-Policy", "cross-origin");
+    res.header("Cross-Origin-Embedder-Policy", "credentialless");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
-}, express.static(uploadsPath));
+}, express.static(uploadsPath, {
+    setHeaders: (res, path) => {
+        res.set('Access-Control-Allow-Origin', '*');
+    }
+}));
 
 console.log('📂 Carpeta pública configurada en:', uploadsPath);
+
 
 // --- Conexión a la Base de Datos ---
 connectDB();
