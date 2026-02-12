@@ -47,8 +47,8 @@
         <ion-card class="product-card" [class.out-of-stock-card]="product.Stock <= 0"
           [routerLink]="['/product-detail', product.ID_Producto]">
           <div class="image-container">
-            <img [src]="apiUrl + '/uploads/' + product.Imagen_URL" alt="{{ product.Nombre }}"
-              onerror="this.src='assets/placeholder.png'" />
+            <img [src]="getImageUrl(product)" alt="{{ product.Nombre }}" onerror="this.src=' assets/placeholder.svg'" />
+
             <ion-badge *ngIf="product.Stock <= 0" color="dark" class="stock-badge">AGOTADO</ion-badge>
             <ion-badge *ngIf="product.Stock > 0" color="success" class="stock-badge">NUEVO</ion-badge>
           </div>

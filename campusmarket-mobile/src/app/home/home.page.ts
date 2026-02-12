@@ -102,7 +102,15 @@ export class HomePage implements OnInit {
     await toast.present();
   }
 
+  getImageUrl(product: any): string {
+    const imageName = product.Imagen_URL || product.imagen_url || product.image;
+    if (!imageName) return 'assets/placeholder.svg';
+    if (imageName.startsWith('http')) return imageName;
+    return `${this.apiUrl}/uploads/${imageName}`;
+  }
+
   goToCart() {
     this.router.navigate(['/cart']);
   }
 }
+

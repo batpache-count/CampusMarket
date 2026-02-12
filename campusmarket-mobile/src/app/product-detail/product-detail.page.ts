@@ -151,5 +151,12 @@ export class ProductDetailPage implements OnInit {
       color: 'success'
     });
     await toast.present();
+    getImageUrl(product: any): string {
+      if (!product) return 'assets/placeholder.svg';
+      const imageName = product.Imagen_URL || product.imagen_url || product.image;
+      if (!imageName) return 'assets/placeholder.svg';
+      if (imageName.startsWith('http')) return imageName;
+      return `${this.apiUrl}/uploads/${imageName}`;
+    }
   }
-}
+

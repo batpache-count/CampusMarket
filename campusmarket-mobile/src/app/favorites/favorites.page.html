@@ -23,7 +23,7 @@
     <ion-row>
       <ion-col size="6" *ngFor="let prod of favorites">
         <ion-card class="product-card" (click)="goToDetail(prod.ID_Producto)">
-          <img [src]="'http://localhost:3000/uploads/' + prod.Imagen_URL" />
+          <img [src]="apiUrl + '/uploads/' + prod.Imagen_URL" />
           <ion-card-header>
             <ion-card-subtitle>{{ prod.Nombre_Tienda }}</ion-card-subtitle>
             <ion-card-title>{{ prod.Nombre }}</ion-card-title>

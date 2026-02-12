@@ -19,8 +19,9 @@
 
   <div *ngIf="product && !loading">
     <div class="image-container">
-      <img [src]="apiUrl + '/uploads/' + product.Imagen_URL" onerror="this.src='assets/placeholder.png'" />
+      <img [src]="getImageUrl(product)" onerror="this.src='assets/placeholder.svg'" />
     </div>
+
 
     <div class="product-info">
       <ion-badge color="secondary">{{ product.Categoria_Nombre }}</ion-badge>
