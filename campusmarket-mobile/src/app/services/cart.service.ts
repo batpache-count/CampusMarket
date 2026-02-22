@@ -51,7 +51,19 @@ export class CartService {
             .pipe(catchError(err => this.handleAuthError(err)))
             .subscribe({
                 next: (items) => {
-                    this.cartItems.next(items);
+                    // Initialize config properties if not present
+                    const currentItems = this.cartItems.value;
+                    const initializedItems = items.map(item => {
+                        const existing = currentItems.find(i => i.id === item.id);
+                        return {
+                            ...item,
+                            selectedPaymentMethod: existing?.selectedPaymentMethod || null,
+                            selectedLocation: existing?.selectedLocation || null,
+                            selectedDay: existing?.selectedDay || null,
+                            selectedTime: existing?.selectedTime || null
+                        };
+                    });
+                    this.cartItems.next(initializedItems);
                 },
                 error: (err) => {
                     console.error('Error cargando carrito', err);
@@ -152,6 +164,17 @@ export class CartService {
 
     resetCart() {
         this.cartItems.next([]);
+    }
+
+    updateItemConfig(itemId: number, config: any) {
+        const items = this.cartItems.value;
+        const updatedItems = items.map(i => {
+            if (i.id === itemId) {
+                return { ...i, ...config };
+            }
+            return i;
+        });
+        this.cartItems.next(updatedItems);
     }
 
     getItems() { return this.cartItems.value; }

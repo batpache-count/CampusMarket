@@ -8,41 +8,92 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
-  <ion-list *ngIf="cartItems.length > 0">
-    <ion-item-sliding *ngFor="let item of cartItems">
-      <ion-item lines="full">
-        <ion-thumbnail slot="start">
-          <img [src]="apiUrl + '/uploads/' + item.image" onerror="this.src='assets/placeholder.png'" />
-        </ion-thumbnail>
-        <ion-label>
-          <h2>{{ item.name }}</h2>
-          <p>{{ item.price | currency }} x {{ item.quantity }}</p>
-          <h3>Total: {{ item.price * item.quantity | currency }}</h3>
-        </ion-label>
-        <div slot="end" class="quantity-controls">
-          <ion-button fill="clear" size="small" (click)="decreaseQuantity(item)">
-            <ion-icon name="remove-circle-outline"></ion-icon>
-          </ion-button>
-          <span>{{ item.quantity }}</span>
-          <ion-button fill="clear" size="small" (click)="increaseQuantity(item)">
-            <ion-icon name="add-circle-outline"></ion-icon>
+  <!-- Confirmation Success Section -->
+  <div *ngIf="showConfirmation" class="confirmation-section">
+    <ion-card color="success">
+      <ion-card-header class="ion-text-center">
+        <ion-icon name="checkmark-circle-outline" class="success-icon"></ion-icon>
+        <ion-card-title>¡Compra Exitosa!</ion-card-title>
+        <ion-card-subtitle>Muestra estos códigos a cada vendedor al recibir tus productos.</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <!-- Confirmation codes removed as requested -->
+
+        <div class="ion-padding-top">
+          <ion-button expand="block" shape="round" routerLink="/home">
+            Volver al Inicio
           </ion-button>
         </div>
-      </ion-item>
-
-      <ion-item-options side="end">
-        <ion-item-option color="danger" (click)="removeFromCart(item)">
-          <ion-icon slot="icon-only" name="trash"></ion-icon>
-        </ion-item-option>
-      </ion-item-options>
-    </ion-item-sliding>
-  </ion-list>
-
-  <div *ngIf="cartItems.length === 0" class="empty-cart">
-    <ion-icon name="cart-outline" size="large"></ion-icon>
-    <p>Tu carrito está vacío</p>
-    <ion-button routerLink="/home" fill="outline">Ir a comprar</ion-button>
+      </ion-card-content>
+    </ion-card>
   </div>
+
+  <div *ngIf="cartItems.length > 0 && !showConfirmation">
+
+    <!-- Top Warning Banner -->
+    <div *ngIf="!isCartConfigured" class="config-warning">
+      <ion-icon name="alert-circle" slot="start"></ion-icon>
+      <ion-label>
+        <h2>Configuración Pendiente</h2>
+        <p>Debes configurar el punto de entrega para todos los productos antes de pagar.</p>
+      </ion-label>
+    </div>
+
+    <div *ngFor="let group of cartGroups; let i = index" class="vendor-group">
+      <div class="vendor-header">
+        <h3>{{ group.vendorName }}</h3>
+      </div>
+
+      <ion-list lines="none" class="cart-list">
+        <ion-item-sliding *ngFor="let item of group.items" class="cart-item-sliding">
+          <ion-item (click)="configureItem(item)" detail="true" button class="cart-item">
+            <ion-thumbnail slot="start" class="product-thumb">
+              <img [src]="apiUrl + '/uploads/' + item.image" onerror="this.src='assets/placeholder.svg'" />
+            </ion-thumbnail>
+            <ion-label>
+              <h2>{{ item.name }}</h2>
+              <p class="price">{{ item.price | currency }} x {{ item.quantity }}</p>
+
+              <div *ngIf="item.selectedPaymentMethod && item.selectedLocation" class="config-details">
+                <p>
+                  <ion-icon name="location-outline"></ion-icon> {{ item.selectedLocation.Nombre_Ubicacion }} <br>
+                  <ion-icon name="time-outline"></ion-icon> {{ item.selectedDay }} {{ item.selectedTime }}
+                </p>
+              </div>
+            </ion-label>
+
+            <div slot="end" class="quantity-controls" (click)="$event.stopPropagation()">
+              <ion-button fill="clear" size="small" (click)="decreaseQuantity(item)">
+                <ion-icon name="remove-circle-outline"></ion-icon>
+              </ion-button>
+              <span class="qty-text">{{ item.quantity }}</span>
+              <ion-button fill="clear" size="small" (click)="increaseQuantity(item)">
+                <ion-icon name="add-circle-outline"></ion-icon>
+              </ion-button>
+            </div>
+          </ion-item>
+
+          <ion-item-options side="end">
+            <ion-item-option color="danger" (click)="removeFromCart(item)">
+              <ion-icon slot="icon-only" name="trash"></ion-icon>
+            </ion-item-option>
+          </ion-item-options>
+        </ion-item-sliding>
+      </ion-list>
+    </div>
+
+    <!-- PayPal Buttons Section (Consolidated) -->
+    <div *ngIf="showPayPalButton" class="paypal-section ion-padding">
+      <h3>Pagar con PayPal</h3>
+      <p class="ion-text-center">Un solo pago seguro para todos tus productos:</p>
+
+      <div id="paypal-button-container" style="min-height: 150px;"></div>
+
+      <p class="pp-hint ion-text-center">Tus fondos se repartirán automáticamente entre los vendedores.</p>
+    </div>
+
+  </div>
+
 </ion-content>
 
 <ion-footer *ngIf="cartItems.length > 0">
@@ -54,7 +105,7 @@
           <div class="total-amount">{{ total | currency }}</div>
         </ion-col>
         <ion-col size="6">
-          <ion-button expand="block" (click)="checkout()">
+          <ion-button expand="block" (click)="checkout()" [disabled]="!isCartConfigured">
             Pagar
           </ion-button>
         </ion-col>

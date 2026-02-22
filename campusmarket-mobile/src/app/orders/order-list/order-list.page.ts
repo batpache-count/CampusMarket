@@ -43,12 +43,15 @@ export class OrderListComponent implements OnInit {
   }
 
   viewDetail(orderId: number) {
-    this.router.navigate(['/orders/order-detail', orderId]);
+    this.router.navigate(['/orders/order-detail', orderId], {
+      queryParams: { role: 'buyer' }
+    });
   }
 
   getStatusColor(status: string): string {
     switch (status) {
       case 'Pendiente': return 'warning';
+      case 'Autorizado': return 'primary';
       case 'En preparacion': return 'tertiary';
       case 'Entregado': return 'success';
       case 'Cancelado': return 'medium'; // Changed to medium to be less alarming than danger

@@ -32,7 +32,8 @@ export class ProfileEditPage implements OnInit {
       Apellido_Paterno: this.user.apellido_paterno,
       Apellido_Materno: this.user.apellido_materno,
       Telefono: this.user.telefono,
-      Email: this.user.email // Needed for some checks or just consistency
+      Email: this.user.email,
+      PayPal_Email: this.user.paypal_email
     };
 
     this.authService.updateProfile(payload).subscribe({

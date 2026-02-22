@@ -5,87 +5,23 @@ const { protect, restrictTo } = require('../middlewares/authMiddleware');
 
 // ==========================================================
 // Rutas de Pedidos
-// Todas las rutas están protegidas por el middleware 'protect'
 // ==========================================================
 
-/**
- * @route POST /api/orders
- * @desc Crear un nuevo pedido (RF-C-004).
- * @access Privada (Cualquier usuario logueado)
- */
-router.post(
-    '/',
-    protect,
-    orderController.createOrder
-);
+// --- Nueva Ruta para PayPal Authorization ---
+router.post('/authorize-paypal', orderController.authorizePayPalOrder);
 
-/**
- * @route GET /api/orders/my-orders
- * @desc Obtener el historial de pedidos del Comprador (RF-C-005).
- * @access Privada (Cualquier usuario logueado)
- */
-router.get(
-    '/my-orders',
-    protect,
-    orderController.getMyOrdersAsBuyer
-);
+// --- Rutas Originales ---
+router.post('/', protect, orderController.createOrder);
+router.post('/crear-orden-paypal', protect, orderController.initPayPalOrder);
 
-/**
- * @route GET /api/orders/my-sales
- * @desc Obtener las ventas recibidas por el Vendedor (RF-V-007).
- * @access Privada (Solo Vendedor)
- */
-router.get(
-    '/my-sales',
-    protect,
-    restrictTo('Vendedor'),
-    orderController.getMyOrdersAsSeller
-);
-
-/**
- * @route GET /api/orders/:id/details
- * @desc Obtener el detalle (productos) de un pedido (RF-V-009).
- * @access Privada (Comprador o Vendedor propietario)
- */
-router.get(
-    '/:id/details',
-    protect,
-    orderController.getOrderDetails
-);
-
-/**
- * @route PUT /api/orders/:id/status
- * @desc Actualizar el estado de un pedido (RF-V-008).
- * @access Privada (Solo Vendedor propietario)
- */
-router.put(
-    '/:id/status',
-    protect,
-    restrictTo('Vendedor'),
-    orderController.updateOrderStatus
-);
-
-/**
- * @route POST /api/orders/validate-qr
- * @desc Validar entrega con QR (RF-V-010).
- * @access Privada (Solo Vendedor)
- */
-router.post(
-    '/validate-qr',
-    protect,
-    restrictTo('Vendedor'),
-    orderController.validateQR
-);
-
-/**
- * @route POST /api/orders/:id/rate
- * @desc Calificar pedido entregado (RF-C-007).
- * @access Privada (Solo Comprador)
- */
-router.post(
-    '/:id/rate',
-    protect,
-    orderController.rateOrder
-);
+router.get('/my-orders', protect, orderController.getMyOrdersAsBuyer);
+router.get('/my-sales', protect, restrictTo('Vendedor'), orderController.getMyOrdersAsSeller);
+router.get('/:id/details', protect, orderController.getOrderDetails);
+router.put('/:id/status', protect, restrictTo('Vendedor'), orderController.updateOrderStatus);
+router.post('/:id/validate-qr', protect, restrictTo('Vendedor'), orderController.validateQR);
+router.post('/:id/rate', protect, orderController.rateOrder);
+router.post('/:id/confirm-receipt', protect, orderController.confirmReceipt);
+router.post('/:id/report', protect, require('../controllers/reportController').createReport);
+router.post('/webhook/paypal', orderController.handlePayPalWebhook);
 
 module.exports = router;

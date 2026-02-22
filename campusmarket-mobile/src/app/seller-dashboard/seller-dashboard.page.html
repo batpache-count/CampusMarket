@@ -1,0 +1,321 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Panel de Vendedor</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Pull to Refresh -->
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- 1. Banner Superior -->
+  <div class="banner-container">
+    <img [src]="bannerImage" alt="Banner" class="banner-img" onerror="this.src='assets/banner-placeholder.jpg'">
+
+    <!-- Edit Button (Subtle) -->
+    <ion-button class="banner-edit-btn" fill="clear" size="small" (click)="changeBanner()">
+      <ion-icon name="ellipsis-vertical" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
+
+  <!-- 2. Tarjeta Flotante -->
+  <div class="profile-card-container">
+    <ion-card class="profile-card">
+      <ion-card-content class="profile-content">
+        <ion-avatar class="profile-avatar">
+          <img
+            [src]="user?.imagen_url ? apiUrl + '/uploads/' + user.imagen_url : 'https://ionicframework.com/docs/img/demos/avatar.svg'"
+            onerror="this.src='https://ionicframework.com/docs/img/demos/avatar.svg'" />
+        </ion-avatar>
+        <div class="profile-info">
+          <h2 class="profile-name">{{ user?.nombre }} {{ user?.apellido_paterno }}</h2>
+          <div class="profile-status">
+            <ion-badge color="success" mode="ios">Activo</ion-badge>
+            <!-- Notification badge removed as requested -->
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- 3. Barra de Navegación "Twitter-style" -->
+  <div class="tabs-container">
+    <ion-segment (ionChange)="segmentChanged($event)" [value]="selectedTab" mode="md" scrollable>
+      <ion-segment-button value="pedidos">
+        <ion-label>Pedidos</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="productos">
+        <ion-label>Productos</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="ubicaciones">
+        <ion-label>Puntos de Entrega</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="estadisticas">
+        <ion-label>Estadísticas</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
+
+  <!-- 4. Contenido Dinámico -->
+  <div class="content-area" [ngSwitch]="selectedTab">
+
+    <div *ngSwitchCase="'pedidos'" class="tab-content">
+      <div class="ion-text-center ion-padding" *ngIf="loading">
+        <ion-spinner name="crescent"></ion-spinner>
+      </div>
+
+      <ion-list *ngIf="!loading && orders.length > 0" lines="none" class="ion-no-padding">
+        <div *ngFor="let order of orders" class="order-card ion-activatable ripple-parent"
+          (click)="openOrderDetails(order)">
+          <ion-ripple-effect></ion-ripple-effect>
+          <div class="order-card-content">
+            <div class="order-image-container">
+              <img
+                [src]="order.items && order.items.length > 0 && order.items[0].Imagen_URL ? apiUrl + '/uploads/' + order.items[0].Imagen_URL : 'assets/placeholder.svg'"
+                onerror="this.src='assets/placeholder.svg'" />
+            </div>
+            <div class="order-info">
+              <h3 class="order-title">
+                {{ order.items && order.items.length > 0 ? order.items[0].Nombre_Producto : 'Producto Desconocido' }}
+                <span *ngIf="order.items && order.items.length > 1" class="order-extra-count">(+{{ order.items.length -
+                  1 }})</span>
+              </h3>
+              <p class="order-buyer">
+                <ion-icon name="person-outline"></ion-icon>
+                Venta a: <strong>{{ order.Nombre_Comprador }}</strong>
+              </p>
+              <p class="order-date">
+                <ion-icon name="calendar-outline"></ion-icon>
+                {{ order.Fecha_Creacion | date:'MMM d, y, h:mm a' }}
+              </p>
+              <div class="order-footer">
+                <span class="order-price">{{ order.Precio_Total | currency }}</span>
+                <ion-badge color="tertiary" *ngIf="order.Metodo_Pago === 'PayPal'" class="pp-badge">
+                  <ion-icon name="card"></ion-icon>
+                </ion-badge>
+                <ion-badge [color]="getStatusColor(order.Estado_Pedido)" class="order-badge">
+                  {{ order.Estado_Pedido }}
+                </ion-badge>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ion-list>
+
+      <div class="empty-state ion-text-center ion-padding" *ngIf="!loading && orders.length === 0">
+        <ion-icon name="documents-outline" style="font-size: 3rem; color: #ccc;"></ion-icon>
+        <p>No hay pedidos recientes.</p>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'productos'" class="tab-content">
+
+      <div class="ion-text-center ion-padding" *ngIf="loading">
+        <ion-spinner name="crescent"></ion-spinner>
+      </div>
+
+      <div *ngIf="!loading && products.length === 0" class="empty-state ion-text-center ion-padding">
+        <ion-icon name="cube-outline" style="font-size: 3rem; color: #ccc;"></ion-icon>
+        <p>No tienes productos publicados.</p>
+        <ion-button (click)="addProduct()" fill="outline">Agregar primer producto</ion-button>
+      </div>
+
+      <ion-list *ngIf="!loading && products.length > 0">
+        <ion-item-sliding *ngFor="let product of products">
+          <ion-item lines="full" detail="false">
+            <ion-thumbnail slot="start">
+              <img [src]="apiUrl + '/uploads/' + product.Imagen_URL" alt="{{ product.Nombre }}"
+                onerror="this.src='assets/placeholder.svg'" />
+            </ion-thumbnail>
+            <ion-label>
+              <h2>{{ product.Nombre }}</h2>
+              <p>{{ product.Precio | currency }} | Stock: {{ product.Stock }}</p>
+              <ion-badge [color]="product.Activo ? 'success' : 'medium'">
+                {{ product.Activo ? 'Público' : 'Oculto' }}
+              </ion-badge>
+            </ion-label>
+
+            <ion-buttons slot="end">
+              <ion-button (click)="toggleStatus(product, $event)">
+                <ion-icon slot="icon-only" [name]="product.Activo ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+              </ion-button>
+              <ion-button (click)="editProduct(product.ID_Producto)">
+                <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-item>
+
+          <ion-item-options side="end">
+            <ion-item-option color="danger" (click)="deleteProduct(product.ID_Producto, product.Nombre)">
+              <ion-icon slot="icon-only" name="trash"></ion-icon>
+            </ion-item-option>
+          </ion-item-options>
+        </ion-item-sliding>
+      </ion-list>
+
+      <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button (click)="addProduct()">
+          <ion-icon name="add"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
+    </div>
+
+    <div *ngSwitchCase="'ubicaciones'" class="tab-content">
+
+      <div class="ion-text-center ion-padding" *ngIf="loading">
+        <ion-spinner name="crescent"></ion-spinner>
+      </div>
+
+      <div *ngIf="!loading && locations.length === 0" class="empty-state ion-text-center ion-padding">
+        <ion-icon name="map-outline" style="font-size: 3rem; color: #ccc;"></ion-icon>
+        <p>No has definido puntos de entrega.</p>
+        <ion-button (click)="addLocation()" fill="outline">Crear Punto de Entrega</ion-button>
+      </div>
+
+      <ion-list *ngIf="!loading && locations.length > 0">
+        <ion-item-sliding *ngFor="let location of locations">
+          <ion-item lines="full" detail="false">
+            <ion-icon slot="start" name="location-outline" color="primary"></ion-icon>
+            <ion-label class="ion-text-wrap">
+              <h2>{{ location.Nombre_Ubicacion }}</h2>
+              <p>
+                <ion-icon name="calendar-outline" style="vertical-align: middle; margin-right: 4px;"></ion-icon>
+                <span style="vertical-align: middle;">{{ location.Dias_Disponibles }}</span>
+              </p>
+              <p>
+                <ion-icon name="time-outline" style="vertical-align: middle; margin-right: 4px;"></ion-icon>
+                <span style="vertical-align: middle;">{{ location.Hora_Inicio }} - {{ location.Hora_Fin }}</span>
+              </p>
+              <ion-badge [color]="location.Activa ? 'success' : 'medium'" class="ion-margin-top">
+                {{ location.Activa ? 'Activo' : 'Inactivo' }}
+              </ion-badge>
+            </ion-label>
+
+            <ion-buttons slot="end">
+              <ion-button (click)="editLocation(location)">
+                <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-item>
+
+          <ion-item-options side="end">
+            <ion-item-option color="danger" (click)="deleteLocation(location)">
+              <ion-icon slot="icon-only" name="trash"></ion-icon>
+            </ion-item-option>
+          </ion-item-options>
+        </ion-item-sliding>
+      </ion-list>
+
+      <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button (click)="addLocation()">
+          <ion-icon name="add"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
+    </div>
+
+    <div *ngSwitchCase="'estadisticas'" class="tab-content">
+      <div class="stats-container">
+        <!-- Time Period Segment -->
+        <ion-segment [(ngModel)]="statsPeriod" (ionChange)="loadStats()" mode="ios" class="stats-segment">
+          <ion-segment-button value="day">
+            <ion-label>Día</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="week">
+            <ion-label>Semana</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="month">
+            <ion-label>Mes</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+
+        <!-- KPI Cards -->
+        <ion-grid>
+          <ion-row>
+            <ion-col size="6">
+              <ion-card class="stat-card">
+                <ion-card-content>
+                  <div class="stat-icon-bg color-blue">
+                    <ion-icon name="cart"></ion-icon>
+                  </div>
+                  <h2 class="stat-value">{{ advStats?.kpis?.Pedidos || 0 }}</h2>
+                  <p class="stat-label">Pedidos</p>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+            <ion-col size="6">
+              <ion-card class="stat-card">
+                <ion-card-content>
+                  <div class="stat-icon-bg color-green">
+                    <ion-icon name="cash"></ion-icon>
+                  </div>
+                  <h2 class="stat-value">{{ calculateTotalSales() | currency }}</h2>
+                  <p class="stat-label">Ingresos</p>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+
+        <!-- Best Selling Day -->
+        <ion-card class="chart-card" *ngIf="advStats?.bestDay">
+          <ion-card-header>
+            <ion-card-subtitle>Día más activo</ion-card-subtitle>
+            <ion-card-title>{{ advStats.bestDay.Dia | titlecase }}</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <p>Se realizaron {{ advStats.bestDay.Total_Pedidos }} pedidos.</p>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Most Requested Product -->
+        <ion-card class="product-highlight-card" *ngIf="advStats?.mostRequested">
+          <ion-card-header>
+            <ion-card-subtitle>Más Solicitado</ion-card-subtitle>
+            <ion-card-title>{{ advStats.mostRequested.Nombre }}</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="product-highlight-body">
+              <img [src]="apiUrl + '/uploads/' + advStats.mostRequested.Imagen_URL"
+                onerror="this.src='assets/icon/favicon.png'" />
+              <div class="highlight-info">
+                <p class="count">{{ advStats.mostRequested.Total_Vendido }} vendidos</p>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Top Products List -->
+        <div class="section-title">
+          <h3>Productos Más Vendidos</h3>
+        </div>
+        <ion-list class="top-products-list">
+          <ion-item *ngFor="let prod of advStats?.topProducts; let i = index">
+            <ion-badge slot="start" [color]="i < 3 ? 'warning' : 'medium'" class="rank-badge">#{{ i + 1 }}</ion-badge>
+            <ion-thumbnail slot="start">
+              <img [src]="apiUrl + '/uploads/' + prod.Imagen_URL" onerror="this.src='assets/icon/favicon.png'" />
+            </ion-thumbnail>
+            <ion-label>
+              <h2>{{ prod.Nombre }}</h2>
+              <p>{{ prod.Total_Vendido }} unidades vendidas</p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+
+        <!-- Details Button -->
+        <div class="ion-text-center ion-padding">
+          <ion-button expand="block" shape="round" (click)="openStatsDetails()">
+            Ver Detalles Completos
+          </ion-button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</ion-content>

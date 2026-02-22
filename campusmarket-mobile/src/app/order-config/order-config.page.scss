@@ -1,0 +1,9 @@
+// Custom Popover Style
+::ng-deep .full-width-popover {
+    --width: 90%;
+    --max-width: 95%;
+
+    .popover-content {
+        width: 100% !important;
+    }
+}

@@ -1,0 +1,91 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/seller-dashboard"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Análisis de Ventas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-segment [(ngModel)]="period" (ionChange)="segmentChanged($event)" mode="ios" class="ion-margin-bottom">
+    <ion-segment-button value="day">
+      <ion-label>Hoy</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="week">
+      <ion-label>Semana</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="month">
+      <ion-label>Mes</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <div *ngIf="loading" class="ion-text-center ion-padding">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando análisis...</p>
+  </div>
+
+  <div *ngIf="!loading && stats">
+    <!-- Main KPIs -->
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col size="6">
+          <ion-card class="kpi-card income">
+            <ion-card-content>
+              <ion-icon name="trending-up-outline"></ion-icon>
+              <h2>{{ (stats.kpis?.Ingresos || 0) | currency }}</h2>
+              <p>Ingresos Totales</p>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+        <ion-col size="6">
+          <ion-card class="kpi-card ticket">
+            <ion-card-content>
+              <ion-icon name="receipt-outline"></ion-icon>
+              <h2>{{ (stats.kpis?.Ticket_Promedio || 0) | currency }}</h2>
+              <p>Ticket Promedio</p>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    <!-- Chart: Sales Trend -->
+    <ion-card class="chart-container">
+      <ion-card-header>
+        <ion-card-title>Tendencia de Ventas</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div style="height: 200px; display: block;">
+          <canvas baseChart [data]="lineChartData" [options]="lineChartOptions" [type]="'line'"></canvas>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Chart: Categories -->
+    <ion-card class="chart-container">
+      <ion-card-header>
+        <ion-card-title>Ventas por Categoría</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div style="height: 250px; display: block;">
+          <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" [type]="'doughnut'"></canvas>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Best Day Highlight -->
+    <ion-item lines="none" class="highlight-item" *ngIf="stats.bestDay">
+      <ion-icon slot="start" name="star" color="warning"></ion-icon>
+      <ion-label>
+        <h3>Tu día más fuerte: <strong>{{ stats.bestDay.Dia | titlecase }}</strong></h3>
+        <p>Con {{ stats.bestDay.Total_Pedidos }} pedidos finalizados.</p>
+      </ion-label>
+    </ion-item>
+  </div>
+
+  <div *ngIf="!loading && !stats" class="ion-text-center ion-padding">
+    <ion-icon name="bar-chart-outline" size="large" color="medium"></ion-icon>
+    <p>Aún no hay datos suficientes para generar este análisis.</p>
+  </div>
+</ion-content>

@@ -110,7 +110,7 @@ class User {
      */
     static async findUserByVendorId(vendorId) {
         const query = `
-            SELECT "ID_Usuario" FROM vendedor 
+            SELECT "ID_Usuario", "PayPal_Email" FROM vendedor 
             WHERE "ID_Vendedor" = $1
         `;
         try {

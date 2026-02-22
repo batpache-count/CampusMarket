@@ -29,6 +29,11 @@
       <ion-input [(ngModel)]="user.telefono" name="telefono" type="tel"></ion-input>
     </ion-item>
 
+    <ion-item *ngIf="user.rol === 'Vendedor'">
+      <ion-label position="stacked">Email de PayPal (para recibir pagos)</ion-label>
+      <ion-input [(ngModel)]="user.paypal_email" name="paypal_email" type="email"></ion-input>
+    </ion-item>
+
     <ion-button expand="block" type="submit" class="ion-margin-top">
       Guardar Cambios
     </ion-button>

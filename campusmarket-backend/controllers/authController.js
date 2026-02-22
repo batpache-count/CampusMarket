@@ -135,6 +135,7 @@ exports.login = async (req, res) => {
                 telefono: user.Telefono,
                 rol: user.Rol,
                 tiendaId: vendorProfile ? vendorProfile.ID_Vendedor : null,
+                paypal_email: vendorProfile ? vendorProfile.PayPal_Email : null,
                 imagen_url: user.Imagen_URL
             }
         });
@@ -151,7 +152,7 @@ exports.login = async (req, res) => {
  */
 exports.updateProfile = async (req, res) => {
     const userId = req.user.ID_Usuario;
-    const { Nombre, Apellido_Paterno, Apellido_Materno, Telefono, DeleteImage } = req.body;
+    const { Nombre, Apellido_Paterno, Apellido_Materno, Telefono, DeleteImage, PayPal_Email } = req.body;
 
     try {
         let updateQuery = `UPDATE usuario SET `;
@@ -181,8 +182,15 @@ exports.updateProfile = async (req, res) => {
 
         await pool.query(updateQuery, params);
 
+        // Actualizar PayPal_Email si es Vendedor
+        if (req.user.rol === 'Vendedor' && PayPal_Email !== undefined) {
+            await pool.query('UPDATE vendedor SET "PayPal_Email" = $1 WHERE "ID_Usuario" = $2', [PayPal_Email, userId]);
+        }
+
         // Retornar usuario actualizado
         const updatedUser = await User.findById(userId);
+        const vendorProfile = updatedUser.Rol === 'Vendedor' ? await User.findVendorProfileByUserId(userId) : null;
+
         res.json({
             message: 'Perfil actualizado',
             user: {
@@ -193,6 +201,8 @@ exports.updateProfile = async (req, res) => {
                 email: updatedUser.Email,
                 telefono: updatedUser.Telefono,
                 rol: updatedUser.Rol,
+                tiendaId: vendorProfile ? vendorProfile.ID_Vendedor : null,
+                paypal_email: vendorProfile ? vendorProfile.PayPal_Email : null,
                 imagen_url: updatedUser.Imagen_URL
             }
         });

@@ -38,6 +38,14 @@ router.get(
     sellerController.getDashboardStats
 );
 
+// 3. ESTADÍSTICAS AVANZADAS
+router.get(
+    '/stats/advanced',
+    protect,
+    restrictTo('Vendedor'),
+    sellerController.getAdvancedStats
+);
+
 // POST /api/seller/become-seller
 router.post('/become-seller', protect, sellerController.becomeSeller);
 

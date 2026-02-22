@@ -1,0 +1,493 @@
+/* RESET & VARIABLES */
+ion-content {
+    --background: #f2f2f7;
+    /* Light Grey Background */
+}
+
+.center-msg {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.container {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* CARD STYLING */
+.card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #8e8e93;
+    /* IOS Grey */
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+}
+
+/* STATUS CARD */
+.status-card {
+    border-left: 5px solid var(--ion-color-primary);
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: white;
+}
+
+/* Status Colors */
+.Pendiente {
+    background-color: var(--ion-color-warning);
+    color: black;
+}
+
+
+.En.preparacion {
+    background-color: var(--ion-color-secondary);
+}
+
+.En.camino {
+    background-color: var(--ion-color-tertiary);
+}
+
+.Entregado {
+    background-color: var(--ion-color-success);
+}
+
+
+.Cancelado {
+    background-color: var(--ion-color-medium);
+}
+
+.status-select {
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-weight: bold;
+    color: #333;
+    max-width: 150px;
+}
+
+/* PRODUCT CARD */
+.product-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.img-box {
+    width: 100%;
+    height: 180px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    overflow: hidden;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+}
+
+.product-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #000000;
+    /* STRICT BLACK */
+    margin: 0 0 12px 0;
+    line-height: 1.2;
+}
+
+.data-grid {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 12px;
+}
+
+.data-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.d-label {
+    font-size: 0.75rem;
+    color: #888;
+    font-weight: 700;
+}
+
+.d-value {
+    font-size: 1.1rem;
+    color: #000;
+    font-weight: 600;
+}
+
+.stock-alert {
+    background: #fff3cd;
+    color: #856404;
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    text-align: center;
+    border: 1px solid #ffeeba;
+}
+
+/* CLIENT CARD */
+.client-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #eee;
+    overflow: hidden;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.client-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #000;
+}
+
+.client-contact {
+    font-size: 0.9rem;
+    color: var(--ion-color-primary);
+    text-decoration: none;
+}
+
+.divider {
+    height: 1px;
+    background: #eee;
+    margin: 10px 0;
+}
+
+.detail-line {
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.notes-box {
+    margin-top: 10px;
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 6px;
+    color: #444;
+    font-size: 0.95rem;
+    border-left: 3px solid #ccc;
+}
+
+.status-redo-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+    border: 1px solid #f0f0f0;
+
+    .current-status-display {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        background: #f8f9fa;
+        color: #333;
+        transition: all 0.3s ease;
+
+        ion-icon {
+            font-size: 1.4rem;
+        }
+
+        &.Pendiente {
+            color: var(--ion-color-warning);
+            background: #fffcea;
+        }
+
+        &.En.camino {
+            color: var(--ion-color-tertiary);
+            background: #f0f7ff;
+        }
+
+        &.Entregado {
+            color: var(--ion-color-success);
+            background: #f0fff4;
+        }
+
+        &.Cancelado {
+            color: var(--ion-color-danger);
+            background: #fff5f5;
+        }
+    }
+
+    .status-options-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .status-chip {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 8px;
+        border-radius: 12px;
+        border: 2px solid #f0f0f0;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: #666;
+
+        ion-icon {
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+        }
+
+        span {
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        &:active {
+            transform: scale(0.95);
+        }
+
+        &.active {
+            border-color: var(--ion-color-primary);
+            background: rgba(var(--ion-color-primary-rgb), 0.05);
+            color: var(--ion-color-primary);
+            box-shadow: 0 2px 8px rgba(var(--ion-color-primary-rgb), 0.2);
+        }
+    }
+
+    .save-changes-btn {
+        --border-radius: 10px;
+        --box-shadow: none;
+        font-weight: 700;
+        height: 50px;
+        margin: 0;
+    }
+}
+
+.waiting-box {
+    background-color: #fff9e6;
+    border: 1px solid #ffeeba;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    ion-icon {
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+
+    p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #856404;
+        line-height: 1.4;
+    }
+}
+
+.buyer-actions {
+    margin-top: 20px;
+    text-align: center;
+
+    .confirm-btn {
+        --border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .btn-hint {
+        font-size: 0.8rem;
+        color: #666;
+        margin-top: 8px;
+    }
+}
+
+.current-status-display {
+    &.Pendiente {
+        color: var(--ion-color-warning);
+    }
+
+    &.En\ camino {
+        color: var(--ion-color-secondary);
+    }
+
+    &.Entregado {
+        color: var(--ion-color-success);
+    }
+
+    &.Cancelado {
+        color: var(--ion-color-medium);
+    }
+}
+
+.report-section {
+    margin-top: 25px;
+    border-top: 1px dashed #ddd;
+    padding-top: 15px;
+    text-align: center;
+
+    .report-btn {
+        --color: var(--ion-color-danger);
+        font-size: 0.85rem;
+        text-transform: none;
+    }
+}
+
+/* QR & PayPal Display */
+.qr-container {
+    background: #fdfdfd;
+    border: 1px dashed #ccc;
+    border-radius: 12px;
+    margin: 16px 0;
+    padding: 16px;
+
+    .paypal-info-box {
+        background: rgba(var(--ion-color-primary-rgb), 0.05);
+        border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
+        border-radius: 12px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 12px;
+
+        ion-icon {
+            font-size: 28px;
+        }
+
+        h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--ion-color-primary);
+        }
+
+        .transaction-id {
+            font-size: 0.8rem;
+            color: #666;
+            margin: 0;
+
+            strong {
+                color: #333;
+                word-break: break-all;
+            }
+        }
+    }
+
+    h3 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin: 4px 0;
+        color: #333;
+        text-align: center;
+    }
+
+    p {
+        font-size: 0.8rem;
+        color: #666;
+        margin-bottom: 12px;
+        text-align: center;
+    }
+
+    .qr-wrapper {
+        display: flex;
+        justify-content: center;
+        padding: 12px;
+        background: white;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        width: fit-content;
+        margin: 0 auto;
+        border-radius: 10px;
+
+        .qr-image {
+            width: 180px;
+            height: 180px;
+            display: block;
+        }
+    }
+
+    .qr-token-row {
+        margin-top: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px;
+        background: #f4f4f4;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:active {
+            background: #e0e0e0;
+            transform: scale(0.98);
+        }
+
+        .qr-token {
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #333;
+            font-weight: 700;
+        }
+
+        ion-icon {
+            font-size: 1.1rem;
+            color: var(--ion-color-primary);
+        }
+    }
+}
+
+.seller-actions {
+    .btn-hint {
+        font-size: 0.8rem;
+        color: #888;
+        text-align: center;
+        margin-top: 12px;
+    }
+}

@@ -52,7 +52,7 @@
       </div>
     </div>
 
-    <ion-divider class="ion-margin-vertical"></ion-divider>
+    <hr class="ion-margin-vertical">
 
     <!-- Write Review Section -->
     <div class="write-review-section ion-margin-top ion-padding">
@@ -100,8 +100,12 @@
 
 <ion-footer *ngIf="product">
   <ion-toolbar>
-    <ion-button expand="block" class="ion-margin" (click)="addToCart()" [disabled]="product.Stock <= 0">
+    <ion-button expand="block" class="ion-margin" (click)="addToCart()" *ngIf="!isOwnProduct"
+      [disabled]="product.Stock <= 0">
       Agregar al Carrito
     </ion-button>
+    <div *ngIf="isOwnProduct" class="ion-text-center ion-padding">
+      <ion-badge color="tertiary">Este es tu producto</ion-badge>
+    </div>
   </ion-toolbar>
 </ion-footer>

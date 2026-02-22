@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/login"></ion-back-button>
     </ion-buttons>
-    <ion-title>Crear Cuenta v3</ion-title>
+    <ion-title>Crear Cuenta</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -13,6 +13,17 @@
       <ion-icon name="person-add-outline" size="large" color="primary" style="font-size: 60px;"></ion-icon>
       <h2>Regístrate</h2>
       <p>Únete a CampusMarket</p>
+    </div>
+
+    <div class="ion-padding-bottom">
+      <ion-segment [(ngModel)]="userData.Rol" color="primary">
+        <ion-segment-button value="Comprador">
+          <ion-label>Comprador</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="Vendedor">
+          <ion-label>Vendedor</ion-label>
+        </ion-segment-button>
+      </ion-segment>
     </div>
 
     <ion-card>

@@ -1,0 +1,84 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/seller-dashboard"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ mode === 'create' ? 'Nuevo Punto de Entrega' : 'Editar Punto' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="saveLocation()">
+        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+
+  <ion-list>
+    <ion-item-group>
+      <ion-item-divider>
+        <ion-label>Información del Lugar</ion-label>
+      </ion-item-divider>
+
+      <ion-item>
+        <ion-label position="stacked">Nombre del Lugar <ion-text color="danger">*</ion-text></ion-label>
+        <ion-input [(ngModel)]="location.Nombre_Ubicacion"
+          placeholder="Ej. Biblioteca Central - Puerta Principal"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Instrucciones / Referencias</ion-label>
+        <ion-textarea [(ngModel)]="location.Descripcion"
+          placeholder="Ej. Estaré sentado en las bancas azules..."></ion-textarea>
+      </ion-item>
+    </ion-item-group>
+
+    <ion-item-group>
+      <ion-item-divider>
+        <ion-label>Disponibilidad</ion-label>
+      </ion-item-divider>
+
+      <ion-item>
+        <ion-label>Días Disponibles</ion-label>
+        <ion-select [(ngModel)]="location.Dias_Disponibles" multiple="true" placeholder="Seleccionar días">
+          <ion-select-option *ngFor="let day of daysOfWeek" [value]="day.value">{{ day.name }}</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item>
+        <ion-label>Hora Inicio</ion-label>
+        <!-- Using simple time input for compatibility, or ion-datetime -->
+        <ion-datetime-button datetime="startTime"></ion-datetime-button>
+        <ion-modal [keepContentsMounted]="true">
+          <ng-template>
+            <ion-datetime id="startTime" presentation="time" [(ngModel)]="location.Hora_Inicio"></ion-datetime>
+          </ng-template>
+        </ion-modal>
+      </ion-item>
+
+      <ion-item>
+        <ion-label>Hora Fin</ion-label>
+        <ion-datetime-button datetime="endTime"></ion-datetime-button>
+        <ion-modal [keepContentsMounted]="true">
+          <ng-template>
+            <ion-datetime id="endTime" presentation="time" [(ngModel)]="location.Hora_Fin"></ion-datetime>
+          </ng-template>
+        </ion-modal>
+      </ion-item>
+
+    </ion-item-group>
+
+    <ion-item class="ion-margin-top" lines="none">
+      <ion-label>Punto Activo</ion-label>
+      <ion-toggle slot="end" [(ngModel)]="location.Activa"></ion-toggle>
+    </ion-item>
+
+  </ion-list>
+
+  <div class="ion-padding">
+    <ion-button expand="block" (click)="saveLocation()">
+      Guardar Punto de Entrega
+    </ion-button>
+  </div>
+
+</ion-content>

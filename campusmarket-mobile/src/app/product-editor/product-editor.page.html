@@ -1,0 +1,64 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/seller-dashboard"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ mode === 'create' ? 'Nuevo Producto' : 'Editar Producto' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="saveProduct()">
+        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <!-- Imagen Preview -->
+  <div class="image-container ion-text-center ion-margin-bottom" (click)="selectImage()">
+    <div *ngIf="!selectedImageWebPath && !currentImageUrl" class="placeholder">
+      <ion-icon name="camera" size="large"></ion-icon>
+      <p>Toca para agregar foto</p>
+    </div>
+    <img *ngIf="selectedImageWebPath" [src]="selectedImageWebPath" class="product-image" />
+    <img *ngIf="!selectedImageWebPath && currentImageUrl" [src]="currentImageUrl" class="product-image"
+      onerror="this.src='assets/placeholder.svg'" />
+  </div>
+
+  <ion-list>
+    <ion-item lines="full">
+      <ion-label position="stacked">Nombre del Producto <ion-text color="danger">*</ion-text></ion-label>
+      <ion-input [(ngModel)]="product.Nombre" type="text" placeholder="Ej. Torta de Jamón"></ion-input>
+    </ion-item>
+
+    <ion-item lines="full">
+      <ion-label position="stacked">Descripción</ion-label>
+      <ion-textarea [(ngModel)]="product.Descripcion" rows="3" placeholder="Ingredientes, detalles..."></ion-textarea>
+    </ion-item>
+
+    <ion-item lines="full">
+      <ion-label position="stacked">Precio ($) <ion-text color="danger">*</ion-text></ion-label>
+      <ion-input [(ngModel)]="product.Precio" type="number" placeholder="0.00"></ion-input>
+    </ion-item>
+
+    <ion-item lines="full">
+      <ion-label position="stacked">Stock Disponible</ion-label>
+      <ion-input [(ngModel)]="product.Stock" type="number" placeholder="0"></ion-input>
+    </ion-item>
+
+    <ion-item lines="full">
+      <ion-label position="stacked">Categoría <ion-text color="danger">*</ion-text></ion-label>
+      <ion-select [(ngModel)]="product.ID_Categoria" placeholder="Selecciona una categoría">
+        <ion-select-option *ngFor="let cat of categories" [value]="cat.ID_Categoria">
+          {{ cat.Nombre }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+  </ion-list>
+
+  <div class="ion-padding">
+    <ion-button expand="block" (click)="saveProduct()">
+      {{ mode === 'create' ? 'Crear Producto' : 'Guardar Cambios' }}
+    </ion-button>
+  </div>
+
+</ion-content>

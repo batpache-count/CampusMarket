@@ -28,13 +28,13 @@ exports.createProduct = async (req, res) => {
         if (!vendorId) return res.status(403).json({ message: 'No eres vendedor.' });
 
         const query = `
-            INSERT INTO producto ("Nombre", "Descripcion", "Precio", "Stock", "ID_Categoria", "ID_Vendedor", "Imagen_URL")
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            INSERT INTO producto ("Nombre", "Descripcion", "Precio", "Stock", "ID_Categoria", "ID_Vendedor", "Imagen_URL", "Activo")
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING "ID_Producto"
         `;
 
         const { rows } = await pool.query(query, [
-            Nombre, Descripcion, Precio, Stock, ID_Categoria, vendorId, Imagen_URL
+            Nombre, Descripcion, Precio, Stock, ID_Categoria, vendorId, Imagen_URL, false
         ]);
 
         res.status(201).json({
@@ -54,12 +54,24 @@ exports.createProduct = async (req, res) => {
  */
 exports.getPublicCatalog = async (req, res) => {
     try {
-        // Usamos subquery para evitar problemas con GROUP BY (only_full_group_by)
+        // Filtering: If the user is logged in, we might want to hide their own products
+        let filterClause = 'p."Activo" = true';
+        const params = [];
+
+        if (req.user && req.user.ID_Usuario) {
+            const vendorId = await getVendorId(req.user.ID_Usuario);
+            if (vendorId) {
+                filterClause += ' AND p."ID_Vendedor" != $1';
+                params.push(vendorId);
+            }
+        }
+
         const query = `
             SELECT 
                 p.*, 
                 c."Nombre" AS "Categoria_Nombre",
                 v."Nombre_Tienda",
+                v."ID_Usuario" AS "ID_Usuario_Vendedor",
                 COALESCE(stats."Promedio", 0) AS "Promedio_Calificacion",
                 COALESCE(stats."Votos", 0) AS "Total_Votos"
             FROM producto p
@@ -70,9 +82,10 @@ exports.getPublicCatalog = async (req, res) => {
                 FROM calificacion_producto
                 GROUP BY "ID_Producto"
             ) stats ON p."ID_Producto" = stats."ID_Producto"
+            WHERE ${filterClause}
             ORDER BY p."ID_Producto" DESC
         `;
-        const { rows: catalog } = await pool.query(query);
+        const { rows: catalog } = await pool.query(query, params);
         res.json(catalog);
     } catch (error) {
         console.error('Error en getPublicCatalog:', error);
@@ -124,6 +137,7 @@ exports.updateProduct = async (req, res) => {
         if (updateData.Precio) { setClause.push(`"Precio" = $${paramIndex++}`); params.push(updateData.Precio); }
         if (updateData.Stock) { setClause.push(`"Stock" = $${paramIndex++}`); params.push(updateData.Stock); }
         if (updateData.ID_Categoria) { setClause.push(`"ID_Categoria" = $${paramIndex++}`); params.push(updateData.ID_Categoria); }
+        if (updateData.hasOwnProperty('Activo')) { setClause.push(`"Activo" = $${paramIndex++}`); params.push(updateData.Activo); }
 
         if (req.file) {
             setClause.push(`"Imagen_URL" = $${paramIndex++}`);
@@ -135,6 +149,19 @@ exports.updateProduct = async (req, res) => {
             params.push(productId);
             await pool.query(`UPDATE producto SET ${setClause.join(', ')} WHERE "ID_Producto" = $${paramIndex}`, params);
         }
+
+        // --- LÓGICA DE INTEGRIDAD: RESETEAR RESEÑAS SI CAMBIA NOMBRE O DESCRIPCIÓN ---
+        // Si el nombre o descripción cambió significativamente, eliminamos las reseñas anteriores
+        // para evitar productos "engañosos" (ej. Torta -> Flan manteniendo 5 estrellas).
+        if (updateData.Nombre || updateData.Descripcion) {
+            const oldName = oldProductRows[0].Nombre;
+            // Solo si el nombre es diferente (comparación simple)
+            if (updateData.Nombre && updateData.Nombre !== oldName) {
+                await pool.query('DELETE FROM calificacion_producto WHERE "ID_Producto" = $1', [productId]);
+                console.log(`[ProductUpdate] Reseñas eliminadas para producto ${productId} debido a cambio de nombre.`);
+            }
+        }
+        // -------------------------------------------------------------------------------
 
         // Lógica de Notificación de Re-stock
         const newStock = updateData.Stock || updateData.stock || 0;
@@ -197,6 +224,7 @@ exports.getProductById = async (req, res) => {
                 p.*,
                 c."Nombre" AS "Categoria_Nombre",
                 v."Nombre_Tienda",
+                v."ID_Usuario" AS "ID_Usuario_Vendedor",
                 COALESCE(stats."Promedio", 0) AS "Promedio_Calificacion",
                 COALESCE(stats."Votos", 0) AS "Total_Votos"
             FROM producto p

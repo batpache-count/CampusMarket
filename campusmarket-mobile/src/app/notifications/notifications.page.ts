@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 export class NotificationsPage implements OnInit {
   notifications: any[] = [];
   loading = true;
+  unreadCount = 0;
 
   constructor(
     private notificationService: NotificationService,
@@ -19,12 +20,15 @@ export class NotificationsPage implements OnInit {
 
   ngOnInit() {
     this.loadNotifications();
+    this.notificationService.unreadCount$.subscribe(count => {
+      this.unreadCount = count;
+    });
   }
 
   loadNotifications() {
     this.loading = true;
     this.notificationService.getNotifications().subscribe({
-      next: (data) => {
+      next: (data: any[]) => {
         this.notifications = data;
         this.loading = false;
       },
@@ -34,7 +38,7 @@ export class NotificationsPage implements OnInit {
 
   doRefresh(event: any) {
     this.notificationService.getNotifications().subscribe({
-      next: (data) => {
+      next: (data: any[]) => {
         this.notifications = data;
         event.target.complete();
       },
@@ -54,8 +58,13 @@ export class NotificationsPage implements OnInit {
     }
 
     if (note.Tipo === 'STOCK_ALERT' && note.ID_Referencia) {
+      // Llevar a detalles del producto para que el vendedor decida si añadir más stock
       this.router.navigate(['/product-detail', note.ID_Referencia]);
+    } else if (note.Tipo === 'NUEVA_VENTA' || note.Tipo === 'RECIBO_CONFIRMADO') {
+      // Notificaciones para el vendedor
+      this.router.navigate(['/orders/order-detail', note.ID_Referencia], { queryParams: { role: 'seller' } });
     } else if (note.ID_Referencia) {
+      // Notificaciones estándar (comprador)
       this.router.navigate(['/orders/order-detail', note.ID_Referencia]);
     }
   }

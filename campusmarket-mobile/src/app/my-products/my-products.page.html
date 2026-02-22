@@ -1,0 +1,64 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Mis Productos</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="addProduct()">
+        <ion-icon slot="icon-only" name="add"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <div *ngIf="loading" class="ion-text-center ion-padding">
+    <ion-spinner></ion-spinner>
+    <p>Cargando inventario...</p>
+  </div>
+
+  <div *ngIf="!loading && products.length === 0" class="ion-text-center ion-padding">
+    <ion-icon name="cube-outline" size="large" color="medium"></ion-icon>
+    <p>No tienes productos en venta.</p>
+    <ion-button (click)="addProduct()" fill="outline">Agregar Producto</ion-button>
+  </div>
+
+  <ion-list *ngIf="!loading && products.length > 0">
+    <ion-item-sliding *ngFor="let product of products">
+      <ion-item lines="full">
+        <ion-thumbnail slot="start">
+          <img [src]="apiUrl + '/uploads/' + product.Imagen_URL" alt="{{ product.Nombre }}"
+            onerror="this.src='assets/placeholder.svg'" />
+        </ion-thumbnail>
+        <ion-label>
+          <h2>{{ product.Nombre }}</h2>
+          <p>{{ product.Categoria_Nombre }}</p>
+          <h3>{{ product.Precio | currency }}</h3>
+          <p *ngIf="product.Stock > 0" color="success">Stock: {{ product.Stock }}</p>
+          <p *ngIf="product.Stock <= 0" color="danger">AGOTADO</p>
+          <ion-badge [color]="product.Activo ? 'success' : 'medium'">
+            {{ product.Activo ? 'Publicado' : 'Inactivo' }}
+          </ion-badge>
+        </ion-label>
+
+        <ion-buttons slot="end">
+          <ion-button (click)="toggleStatus(product)">
+            <ion-icon slot="icon-only" [name]="product.Activo ? 'eye-off-outline' : 'eye-outline'"
+              [color]="product.Activo ? 'medium' : 'primary'"></ion-icon>
+            <!-- {{ product.Activo ? 'Ocultar' : 'Publicar' }} -->
+          </ion-button>
+          <ion-button (click)="editProduct(product.ID_Producto)">
+            <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-item>
+
+      <ion-item-options side="end">
+        <ion-item-option color="danger" (click)="deleteProduct(product.ID_Producto, product.Nombre)">
+          <ion-icon slot="icon-only" name="trash"></ion-icon>
+        </ion-item-option>
+      </ion-item-options>
+    </ion-item-sliding>
+  </ion-list>
+</ion-content>

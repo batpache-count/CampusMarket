@@ -46,7 +46,7 @@ export class HomePage implements OnInit {
     });
   }
 
-  loadProducts() {
+  loadProducts(event?: any) {
     this.productService.getProducts().subscribe({
       next: (data) => {
         // Sort: Stock > 0 first, then Stock <= 0
@@ -56,11 +56,17 @@ export class HomePage implements OnInit {
           return 0;
         });
         this.filterProducts();
+        if (event) event.target.complete();
       },
       error: (err) => {
         console.error('Error loading products', err);
+        if (event) event.target.complete();
       }
     });
+  }
+
+  handleRefresh(event: any) {
+    this.loadProducts(event);
   }
 
   searchQuery: string = '';

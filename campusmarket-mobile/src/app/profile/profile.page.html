@@ -90,6 +90,13 @@
         <p *ngIf="user">{{ user.telefono || 'No registrado' }}</p>
       </ion-label>
     </ion-item>
+
+    <ion-item *ngIf="user && user.rol === 'Vendedor'">
+      <ion-label>
+        <h3>Email de PayPal</h3>
+        <p>{{ user.paypal_email || 'No configurado (requerido para cobrar)' }}</p>
+      </ion-label>
+    </ion-item>
   </ion-list>
 
   <ion-list class="ion-margin-top">

@@ -8,16 +8,22 @@ const User = require('../models/User'); // Necesitamos el modelo User para encon
  */
 exports.createUbicacion = async (req, res) => {
     // req.user.tiendaId viene del token JWT (ver authController.js - Paso 16)
-    const idVendedor = req.user.tiendaId; 
+    const idVendedor = req.user.tiendaId;
 
-    const { Nombre_Ubicacion, Descripcion } = req.body;
+    const { Nombre_Ubicacion, Descripcion, Dias_Disponibles, Hora_Inicio, Hora_Fin } = req.body;
 
     if (!Nombre_Ubicacion) {
         return res.status(400).json({ message: 'El nombre de la ubicación es obligatorio.' });
     }
 
     try {
-        const nuevaUbicacion = await Ubicacion.create(idVendedor, req.body);
+        const nuevaUbicacion = await Ubicacion.create(idVendedor, {
+            Nombre_Ubicacion,
+            Descripcion,
+            Dias_Disponibles,
+            Hora_Inicio,
+            Hora_Fin
+        });
         res.status(201).json({
             message: 'Punto de entrega creado exitosamente.',
             ubicacionId: nuevaUbicacion.id
@@ -100,8 +106,8 @@ exports.deleteUbicacion = async (req, res) => {
         // 2. Verificar que no tenga pedidos activos (RF-V-006)
         const hasActiveOrders = await Ubicacion.hasActiveOrders(id);
         if (hasActiveOrders) {
-            return res.status(400).json({ 
-                message: 'No se puede eliminar. Esta ubicación está siendo usada por pedidos activos (Pendiente, En preparación, etc.).' 
+            return res.status(400).json({
+                message: 'No se puede eliminar. Esta ubicación está siendo usada por pedidos activos (Pendiente, En preparación, etc.).'
             });
         }
 
@@ -129,9 +135,9 @@ exports.getVendorActiveUbicaciones = async (req, res) => {
 
     try {
         const ubicaciones = await Ubicacion.findByVendor(idVendedor);
-        
+
         // Filtramos solo las activas para el comprador
-        const activas = ubicaciones.filter(u => u.Activa === 1); 
+        const activas = ubicaciones.filter(u => u.Activa === 1 || u.Activa === true || u.Activa === '1');
 
         res.status(200).json(activas);
     } catch (error) {

@@ -1,0 +1,77 @@
+<ion-header>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-back-button defaultHref="/cart"></ion-back-button>
+        </ion-buttons>
+        <ion-title>Configurar Pedido</ion-title>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+    <div *ngIf="item" class="product-summary">
+        <ion-thumbnail slot="start">
+            <img [src]="apiUrl + '/uploads/' + item.image" onerror="this.src='assets/placeholder.svg'" />
+        </ion-thumbnail>
+        <ion-label>
+            <h2>{{ item.name }}</h2>
+            <p>{{ item.price | currency }} x {{ item.quantity }}</p>
+            <h3>Total: {{ item.price * item.quantity | currency }}</h3>
+        </ion-label>
+    </div>
+
+    <ion-list lines="full" class="ion-margin-top">
+        <ion-list-header>
+            <ion-label>Método de Pago</ion-label>
+        </ion-list-header>
+        <ion-radio-group [(ngModel)]="selectedPaymentMethod">
+            <ion-item>
+                <ion-label>Efectivo</ion-label>
+                <ion-radio slot="start" value="Efectivo"></ion-radio>
+            </ion-item>
+            <ion-item>
+                <ion-label>PayPal</ion-label>
+                <ion-radio slot="start" value="PayPal"></ion-radio>
+            </ion-item>
+        </ion-radio-group>
+    </ion-list>
+
+    <ion-list lines="full" class="ion-margin-top">
+        <ion-list-header>
+            <ion-label>Entrega</ion-label>
+        </ion-list-header>
+
+        <ion-item>
+            <ion-label position="stacked">Punto de Entrega</ion-label>
+            <ion-select [(ngModel)]="selectedLocation" (ionChange)="onLocationChange()"
+                placeholder="Seleccionar ubicación" [interface]="'popover'"
+                [interfaceOptions]="{cssClass: 'full-width-popover'}">
+                <ion-select-option *ngFor="let loc of availableLocations" [value]="loc">
+                    {{ loc.Nombre_Ubicacion }}
+                </ion-select-option>
+            </ion-select>
+        </ion-item>
+
+        <ion-item *ngIf="selectedLocation">
+            <ion-label position="stacked">Día de Entrega</ion-label>
+            <ion-select [(ngModel)]="selectedDay" (ionChange)="onDayChange()" placeholder="Seleccionar día"
+                [interface]="'popover'" [interfaceOptions]="{cssClass: 'full-width-popover'}">
+                <ion-select-option *ngFor="let day of availableDays" [value]="day">
+                    {{ day }}
+                </ion-select-option>
+            </ion-select>
+        </ion-item>
+
+        <ion-item *ngIf="selectedLocation && selectedDay">
+            <ion-label position="stacked">Horario Disponible</ion-label>
+            <ion-text color="medium" class="ion-padding-top">
+                <p>{{ selectedLocation.Hora_Inicio }} - {{ selectedLocation.Hora_Fin }}</p>
+            </ion-text>
+        </ion-item>
+    </ion-list>
+
+    <div class="ion-padding-top">
+        <ion-button expand="block" (click)="saveConfig()">
+            Guardar Configuración
+        </ion-button>
+    </div>
+</ion-content>

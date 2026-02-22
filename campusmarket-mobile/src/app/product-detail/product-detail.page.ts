@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ProductService } from '../services/product.service';
 import { CartService } from '../services/cart.service';
 import { FavoriteService } from '../services/favorite.service';
+import { AuthService } from '../services/auth.service';
 import { ToastController, AlertController } from '@ionic/angular';
 
 import { environment } from '../../environments/environment';
@@ -21,16 +22,20 @@ export class ProductDetailPage implements OnInit {
   isFavorite = false;
   tempRating = 0;
   commentText = '';
+  currentUser: any = null;
 
   constructor(
     private route: ActivatedRoute,
     private productService: ProductService,
     private cartService: CartService,
     private favoriteService: FavoriteService,
+    private authService: AuthService,
     private toastController: ToastController,
     private alertController: AlertController,
     private router: Router
-  ) { }
+  ) {
+    this.currentUser = this.authService.getCurrentUser();
+  }
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
@@ -151,12 +156,25 @@ export class ProductDetailPage implements OnInit {
       color: 'success'
     });
     await toast.present();
-    getImageUrl(product: any): string {
-      if (!product) return 'assets/placeholder.svg';
-      const imageName = product.Imagen_URL || product.imagen_url || product.image;
-      if (!imageName) return 'assets/placeholder.svg';
-      if (imageName.startsWith('http')) return imageName;
-      return `${this.apiUrl}/uploads/${imageName}`;
-    }
   }
+
+  getImageUrl(product: any): string {
+    if (!product) return 'assets/placeholder.svg';
+    const imageName = product.Imagen_URL || product.imagen_url || product.image;
+    if (!imageName) return 'assets/placeholder.svg';
+    if (imageName.startsWith('http')) return imageName;
+    return `${this.apiUrl}/uploads/${imageName}`;
+  }
+
+  get isOwnProduct(): boolean {
+    if (!this.product || !this.currentUser) return false;
+    // Current user in authService has 'id', while product has 'ID_Usuario_Vendedor' or similar
+    // Based on findByIdWithInfo, it's 'ID_Vendedor_User'
+    // Let's check naming in productController: p.*, v.Nombre_Tienda
+    // Usually is 'ID_Usuario' in the joined vendor table if we were to return it.
+    // In our public catalog, we probably need to ensure ID_Usuario of the vendor is returned.
+    return Number(this.currentUser.id) === Number(this.product.ID_Usuario_Vendedor) ||
+      Number(this.currentUser.id) === Number(this.product.ID_Usuario);
+  }
+}
 

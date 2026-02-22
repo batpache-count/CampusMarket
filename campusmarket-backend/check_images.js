@@ -2,13 +2,17 @@ const { pool } = require('./config/database');
 
 async function checkImages() {
     try {
-        console.log('Checking image URLs...');
-        const [rows] = await pool.query('SELECT ID_Producto, Nombre, Imagen_URL FROM producto LIMIT 5');
-        console.log(rows);
-    } catch (error) {
-        console.error('Error:', error);
+        const res = await pool.query(`
+            SELECT "ID_Producto", "Nombre", "Imagen_URL" 
+            FROM producto 
+            LIMIT 5
+        `);
+        console.log('🖼️ Product Images in DB:', res.rows);
+    } catch (err) {
+        console.error('❌ Error checking images:', err);
+    } finally {
+        pool.end();
     }
-    process.exit();
 }
 
 checkImages();

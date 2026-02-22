@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS public.vendedor (
   "Nombre_Tienda" TEXT NOT NULL,
   "Descripcion_Tienda" TEXT,
   "Estado_Tienda" TEXT DEFAULT 'En Linea' CHECK ("Estado_Tienda" IN ('En Linea', 'Desconectado', 'Suspendido')),
+  "PayPal_Email" TEXT,
   "Tiempo_Arrepentimiento_Min" INTEGER DEFAULT 5,
   "Tiempo_Retraso_Comida_Min" INTEGER DEFAULT 15
 );

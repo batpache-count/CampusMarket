@@ -35,6 +35,12 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding-top">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content pullingIcon="chevron-down-circle-outline" pullingText="Desliza para actualizar"
+      refreshingSpinner="crescent" refreshingText="Actualizando productos...">
+    </ion-refresher-content>
+  </ion-refresher>
+
   <ion-header collapse="condense">
     <ion-toolbar>
       <ion-title size="large">CampusMarket</ion-title>
@@ -47,7 +53,7 @@
         <ion-card class="product-card" [class.out-of-stock-card]="product.Stock <= 0"
           [routerLink]="['/product-detail', product.ID_Producto]">
           <div class="image-container">
-            <img [src]="getImageUrl(product)" alt="{{ product.Nombre }}" onerror="this.src=' assets/placeholder.svg'" />
+            <img [src]="getImageUrl(product)" alt="{{ product.Nombre }}" onerror="this.src='assets/placeholder.svg'" />
 
             <ion-badge *ngIf="product.Stock <= 0" color="dark" class="stock-badge">AGOTADO</ion-badge>
             <ion-badge *ngIf="product.Stock > 0" color="success" class="stock-badge">NUEVO</ion-badge>

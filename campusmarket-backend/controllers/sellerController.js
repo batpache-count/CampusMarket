@@ -152,18 +152,18 @@ exports.getDashboardStats = async (req, res) => {
                  WHERE "ID_Vendedor" = $1 AND "Estado_Pedido" = 'Entregado'`,
                 [idVendedor]
             ),
-            // 2. Pedidos Completados
+            // 2. Pedidos Totales (No cancelados)
             pool.query(
                 `SELECT COUNT(*) AS count 
                  FROM pedido 
-                 WHERE "ID_Vendedor" = $1 AND "Estado_Pedido" = 'Entregado'`,
+                 WHERE "ID_Vendedor" = $1 AND "Estado_Pedido" != 'Cancelado'`,
                 [idVendedor]
             ),
-            // 3. Pedidos Pendientes (Pendiente o En preparacion)
+            // 3. Pedidos Pendientes (Pendiente, En preparacion, o En camino)
             pool.query(
                 `SELECT COUNT(*) AS count 
                  FROM pedido 
-                 WHERE "ID_Vendedor" = $1 AND "Estado_Pedido" IN ('Pendiente', 'En preparacion')`,
+                 WHERE "ID_Vendedor" = $1 AND "Estado_Pedido" IN ('Pendiente', 'En preparacion', 'En camino')`,
                 [idVendedor]
             ),
             // 4. Productos Activos
@@ -185,5 +185,102 @@ exports.getDashboardStats = async (req, res) => {
     } catch (error) {
         console.error('Error en getDashboardStats:', error);
         res.status(500).json({ message: 'Error al calcular estadísticas.' });
+    }
+};
+
+/**
+ * 8. Obtener Estadísticas Avanzadas (RF-V-Dashboard-Adv)
+ * Endpoint: GET /api/seller/stats/advanced
+ * Query Params: ?period=day|week|month (Default: week)
+ */
+exports.getAdvancedStats = async (req, res) => {
+    try {
+        const vendorProfile = await User.findVendorProfileByUserId(req.user.ID_Usuario);
+        if (!vendorProfile) {
+            return res.status(404).json({ message: 'Vendedor no encontrado.' });
+        }
+        const idVendedor = vendorProfile.ID_Vendedor;
+        const period = req.query.period || 'week'; // day, week, month
+
+        // Definir filtro de fecha
+        let dateFilter = '';
+        if (period === 'day') {
+            dateFilter = `AND p."Fecha_Creacion" >= NOW() - INTERVAL '1 day'`;
+        } else if (period === 'week') {
+            dateFilter = `AND p."Fecha_Creacion" >= NOW() - INTERVAL '1 week'`;
+        } else if (period === 'month') {
+            dateFilter = `AND p."Fecha_Creacion" >= NOW() - INTERVAL '1 month'`;
+        }
+
+        const [topProducts, bestDay, salesTrend, salesByCategory, kpis] = await Promise.all([
+            // 1. Productos más vendidos (Top 5)
+            pool.query(`
+                SELECT prod."Nombre", prod."Imagen_URL", SUM(dp."Cantidad") as "Total_Vendido"
+                FROM detalle_pedido dp
+                JOIN pedido p ON dp."ID_Pedido" = p."ID_Pedido"
+                JOIN producto prod ON dp."ID_Producto" = prod."ID_Producto"
+                WHERE p."ID_Vendedor" = $1 AND p."Estado_Pedido" = 'Entregado' ${dateFilter}
+                GROUP BY prod."ID_Producto", prod."Nombre", prod."Imagen_URL"
+                ORDER BY "Total_Vendido" DESC
+                LIMIT 5
+            `, [idVendedor]),
+
+            // 2. Día con más ventas (Solo si el periodo es semana o mes)
+            pool.query(`
+                SELECT TO_CHAR(p."Fecha_Creacion", 'FMDay') as "Dia", COUNT(*) as "Total_Pedidos"
+                FROM pedido p
+                WHERE p."ID_Vendedor" = $1 AND p."Estado_Pedido" != 'Cancelado' ${dateFilter}
+                GROUP BY "Dia"
+                ORDER BY "Total_Pedidos" DESC
+                LIMIT 1
+            `, [idVendedor]),
+
+            // 3. Tendencia de Ventas (Agrupado por día)
+            pool.query(`
+                SELECT TO_CHAR(p."Fecha_Creacion", 'YYYY-MM-DD') as "Fecha", SUM(p."Precio_Total") as "Total_Venta"
+                FROM pedido p
+                WHERE p."ID_Vendedor" = $1 AND p."Estado_Pedido" = 'Entregado' ${dateFilter}
+                GROUP BY "Fecha"
+                ORDER BY "Fecha" ASC
+            `, [idVendedor]),
+
+            // 4. Ventas por Categoría
+            pool.query(`
+                SELECT c."Nombre" as "Categoria", SUM(dp."Cantidad") as "Total_Vendido"
+                FROM detalle_pedido dp
+                JOIN pedido p ON dp."ID_Pedido" = p."ID_Pedido"
+                JOIN producto prod ON dp."ID_Producto" = prod."ID_Producto"
+                JOIN categoria c ON prod."ID_Categoria" = c."ID_Categoria"
+                WHERE p."ID_Vendedor" = $1 AND p."Estado_Pedido" = 'Entregado' ${dateFilter}
+                GROUP BY c."Nombre"
+                ORDER BY "Total_Vendido" DESC
+            `, [idVendedor]),
+
+            // 5. KPIs (Ticket Promedio, Crecimiento - Crecimiento simulado por ahora)
+            pool.query(`
+                SELECT 
+                    COALESCE(SUM("Precio_Total"), 0) as "Ingresos",
+                    COUNT(*) as "Pedidos",
+                    CASE WHEN COUNT(*) > 0 THEN COALESCE(SUM("Precio_Total"), 0) / COUNT(*) ELSE 0 END as "Ticket_Promedio"
+                FROM pedido p
+                WHERE p."ID_Vendedor" = $1 AND p."Estado_Pedido" = 'Entregado' ${dateFilter}
+            `, [idVendedor])
+        ]);
+
+        // Producto más solicitado (El primero de topProducts)
+        const mostRequested = topProducts.rows.length > 0 ? topProducts.rows[0] : null;
+
+        res.status(200).json({
+            topProducts: topProducts.rows,
+            mostRequested: mostRequested,
+            bestDay: bestDay.rows.length > 0 ? bestDay.rows[0] : null,
+            salesTrend: salesTrend.rows,
+            salesByCategory: salesByCategory.rows,
+            kpis: kpis.rows[0]
+        });
+
+    } catch (error) {
+        console.error('Error en getAdvancedStats:', error);
+        res.status(500).json({ message: 'Error al obtener estadísticas avanzadas.' });
     }
 };

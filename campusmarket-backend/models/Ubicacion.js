@@ -8,19 +8,26 @@ class Ubicacion {
 
     /**
      * Crea un nuevo punto de entrega para un vendedor.
-     * @param {number} idVendedor - El ID_Vendedor (de la tabla 'vendedor').
-     * @param {object} data - { Nombre_Ubicacion, Descripcion }
-     * @returns {object} El ID de la nueva ubicación.
+     * @param {number} idVendedor - El ID_Vendedor.
+     * @param {object} data - { Nombre_Ubicacion, Descripcion, Dias_Disponibles, Hora_Inicio, Hora_Fin }
      */
     static async create(idVendedor, data) {
-        const { Nombre_Ubicacion, Descripcion } = data;
+        const { Nombre_Ubicacion, Descripcion, Dias_Disponibles, Hora_Inicio, Hora_Fin } = data;
         const query = `
-            INSERT INTO ubicacion_entrega ("ID_Vendedor", "Nombre_Ubicacion", "Descripcion", "Activa")
-            VALUES ($1, $2, $3, TRUE) 
+            INSERT INTO ubicacion_entrega 
+            ("ID_Vendedor", "Nombre_Ubicacion", "Descripcion", "Dias_Disponibles", "Hora_Inicio", "Hora_Fin", "Activa")
+            VALUES ($1, $2, $3, $4, $5, $6, TRUE) 
             RETURNING "ID_Ubicacion"
         `;
         try {
-            const { rows } = await pool.query(query, [idVendedor, Nombre_Ubicacion, Descripcion || null]);
+            const { rows } = await pool.query(query, [
+                idVendedor,
+                Nombre_Ubicacion,
+                Descripcion || null,
+                Dias_Disponibles || 'Lunes,Martes,Miércoles,Jueves,Viernes',
+                Hora_Inicio || '09:00',
+                Hora_Fin || '18:00'
+            ]);
             return { id: rows[0].ID_Ubicacion };
         } catch (error) {
             console.error('Error en Ubicacion.create:', error);
@@ -30,12 +37,10 @@ class Ubicacion {
 
     /**
      * Busca todas las ubicaciones (activas e inactivas) de un vendedor.
-     * @param {number} idVendedor - El ID_Vendedor.
-     * @returns {Array} Lista de ubicaciones.
      */
     static async findByVendor(idVendedor) {
         const query = `
-            SELECT "ID_Ubicacion", "Nombre_Ubicacion", "Descripcion", "Activa"
+            SELECT "ID_Ubicacion", "Nombre_Ubicacion", "Descripcion", "Activa", "Dias_Disponibles", "Hora_Inicio", "Hora_Fin"
             FROM ubicacion_entrega
             WHERE "ID_Vendedor" = $1
             ORDER BY "Activa" DESC, "Nombre_Ubicacion" ASC
@@ -51,8 +56,6 @@ class Ubicacion {
 
     /**
      * Busca una ubicación específica por su ID.
-     * @param {number} idUbicacion - El ID_Ubicacion.
-     * @returns {object|null} La ubicación.
      */
     static async findById(idUbicacion) {
         const query = `SELECT * FROM ubicacion_entrega WHERE "ID_Ubicacion" = $1`;
@@ -66,20 +69,30 @@ class Ubicacion {
     }
 
     /**
-     * Actualiza una ubicación (Nombre, Descripcion, Estado).
-     * @param {number} idUbicacion - El ID_Ubicacion.
-     * @param {object} data - { Nombre_Ubicacion, Descripcion, Activa }
-     * @returns {boolean} Éxito.
+     * Actualiza una ubicación (Nombre, Descripcion, Estado, Horarios).
      */
     static async update(idUbicacion, data) {
-        const { Nombre_Ubicacion, Descripcion, Activa } = data;
+        const { Nombre_Ubicacion, Descripcion, Activa, Dias_Disponibles, Hora_Inicio, Hora_Fin } = data;
         const query = `
             UPDATE ubicacion_entrega
-            SET "Nombre_Ubicacion" = $1, "Descripcion" = $2, "Activa" = $3
-            WHERE "ID_Ubicacion" = $4
+            SET "Nombre_Ubicacion" = $1, 
+                "Descripcion" = $2, 
+                "Activa" = $3,
+                "Dias_Disponibles" = $4,
+                "Hora_Inicio" = $5,
+                "Hora_Fin" = $6
+            WHERE "ID_Ubicacion" = $7
         `;
         try {
-            const result = await pool.query(query, [Nombre_Ubicacion, Descripcion || null, Activa, idUbicacion]);
+            const result = await pool.query(query, [
+                Nombre_Ubicacion,
+                Descripcion || null,
+                Activa,
+                Dias_Disponibles,
+                Hora_Inicio,
+                Hora_Fin,
+                idUbicacion
+            ]);
             return result.rowCount > 0;
         } catch (error) {
             console.error('Error en Ubicacion.update:', error);

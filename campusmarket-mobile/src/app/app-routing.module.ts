@@ -49,6 +49,10 @@ const routes: Routes = [
       {
         path: 'order-detail/:id',
         loadChildren: () => import('./orders/order-detail/order-detail.module').then(m => m.OrderDetailPageModule)
+      },
+      {
+        path: 'order-report/:id',
+        loadChildren: () => import('./orders/order-report/order-report.module').then(m => m.OrderReportPageModule)
       }
     ]
   },
@@ -64,6 +68,33 @@ const routes: Routes = [
     path: 'seller-products',
     loadChildren: () => import('./seller-products/seller-products.module').then(m => m.SellerProductsPageModule)
   },
+  {
+    path: 'my-products',
+    loadChildren: () => import('./my-products/my-products.module').then(m => m.MyProductsPageModule)
+  },
+  {
+    path: 'product-editor/:id',
+    loadChildren: () => import('./product-editor/product-editor.module').then(m => m.ProductEditorPageModule)
+  },
+  {
+    path: 'seller-dashboard',
+    loadChildren: () => import('./seller-dashboard/seller-dashboard.module').then(m => m.SellerDashboardPageModule)
+  },
+  {
+    path: 'location-editor/:id',
+    loadChildren: () => import('./location-editor/location-editor.module').then(m => m.LocationEditorPageModule)
+  },
+  {
+    path: 'order-config/:itemId',
+    loadChildren: () => import('./order-config/order-config.module').then(m => m.OrderConfigPageModule)
+  },
+  {
+    path: 'seller-stats-detail',
+    loadChildren: () => import('./seller-stats-detail/seller-stats-detail.module').then(m => m.SellerStatsDetailPageModule)
+  },
+
+
+
 ];
 
 @NgModule({

@@ -27,6 +27,13 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Logging Middleware
+app.use((req, res, next) => {
+    console.log(`📨 [${new Date().toISOString()}] ${req.method} ${req.url}`);
+    console.log('Body:', req.body);
+    next();
+});
+
 // --- CONFIGURACIÓN DE CARPETA UPLOADS ---
 const uploadsPath = path.join(process.cwd(), 'uploads');
 
@@ -55,18 +62,28 @@ app.get('/api', (req, res) => {
     res.status(200).json({ message: 'API activa' });
 });
 
+app.get('/api/direct-test', (req, res) => res.send('DIRECT OK'));
+
 app.use('/api/auth', authRoutes);
 app.use('/api/seller', sellerRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/locations', ubicacionRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/pagos', orderRoutes); // Alias para compatibilidad con el frontend
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/paypal', require('./routes/paypalRoutes'));
 app.use('/api/payment', paymentRoutes);
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/buyer', require('./routes/buyerRoutes'));
 app.use('/api/addresses', require('./routes/addressRoutes'));
 
 // --- Inicio del Servidor ---
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Servidor corriendo en http://0.0.0.0:${PORT}`);
+
+// --- Forzado de persistencia ---
+app.listen(3000, '0.0.0.0', () => {
+    console.log('🚀 Servidor ACTIVO y PERSISTENTE en puerto 3000');
 });
+
+setInterval(() => {
+    // Mantener loop de eventos ocupado
+}, 60000);

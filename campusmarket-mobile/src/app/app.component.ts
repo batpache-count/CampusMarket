@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { AuthService } from './services/auth.service';
+import { NotificationService } from './services/notification.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -9,7 +10,14 @@ import { Router } from '@angular/router';
   standalone: false,
 })
 export class AppComponent {
-  constructor(private authService: AuthService, private router: Router) {
+  user: any = null;
+  unreadNotifications: number = 0;
+
+  constructor(
+    private authService: AuthService,
+    private notificationService: NotificationService,
+    private router: Router
+  ) {
     this.initializeApp();
   }
 
@@ -20,6 +28,17 @@ export class AppComponent {
     } else {
       document.body.classList.remove('dark');
     }
+
+    this.authService.currentUser$.subscribe(user => {
+      this.user = user;
+      if (user) {
+        this.notificationService.getNotifications().subscribe();
+      }
+    });
+
+    this.notificationService.unreadCount$.subscribe(count => {
+      this.unreadNotifications = count;
+    });
   }
 
   logout() {

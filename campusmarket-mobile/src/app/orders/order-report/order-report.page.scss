@@ -1,0 +1,128 @@
+.info-card {
+    margin: 0 0 16px 0;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    background: white;
+
+    ion-card-header {
+        padding: 12px 16px;
+    }
+
+    ion-card-subtitle {
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    ion-card-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #333;
+    }
+
+    ion-card-content {
+        padding: 0 16px 12px 16px;
+
+        p {
+            margin: 4px 0;
+            font-size: 0.9rem;
+            color: #666;
+        }
+    }
+}
+
+.section-container {
+    margin-bottom: 24px;
+
+    .section-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #444;
+        margin: 0 0 12px 8px;
+    }
+}
+
+.reason-item {
+    --background: white;
+    --border-radius: 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    --padding-start: 12px;
+    border: 1px solid #f0f0f0;
+
+    ion-label {
+        font-size: 0.95rem;
+        color: #555;
+    }
+}
+
+.textarea-item {
+    --background: white;
+    --border-radius: 12px;
+    border: 1px solid #f0f0f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    padding: 8px;
+
+    ion-textarea {
+        --placeholder-color: #aaa;
+        --color: #333;
+        font-size: 0.95rem;
+    }
+}
+
+.helper-text {
+    color: var(--ion-color-danger);
+    font-size: 0.8rem;
+    margin: 4px 0 0 12px;
+}
+
+.products-list {
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+
+    .products-title {
+        font-size: 0.85rem;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    .product-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 6px;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+
+        ion-badge {
+            font-size: 0.75rem;
+            --padding-start: 6px;
+            --padding-end: 6px;
+        }
+
+        .product-name {
+            font-size: 0.9rem;
+            color: #555;
+        }
+    }
+}
+
+.disclaimer {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+
+    ion-icon {
+        font-size: 4rem;
+        margin-bottom: 16px;
+    }
+}

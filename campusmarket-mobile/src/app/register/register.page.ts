@@ -15,7 +15,8 @@ export class RegisterPage implements OnInit {
     Apellido_Paterno: '',
     Apellido_Materno: '',
     Email: '',
-    Contrasena: ''
+    Contrasena: '',
+    Rol: 'Comprador' // Default role
   };
 
   constructor(

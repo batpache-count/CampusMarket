@@ -1,0 +1,89 @@
+<ion-header class="ion-no-border">
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-back-button defaultHref="/orders/order-list"></ion-back-button>
+        </ion-buttons>
+        <ion-title>Reportar Problema</ion-title>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+    <div *ngIf="loading" class="ion-text-center ion-padding">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Cargando detalles...</p>
+    </div>
+
+    <div *ngIf="!loading && order">
+        <!-- 1. Vendedor Info -->
+        <ion-card class="info-card">
+            <ion-card-header>
+                <ion-card-subtitle>Vendedor</ion-card-subtitle>
+                <ion-card-title>{{ order.Nombre_Tienda }}</ion-card-title>
+            </ion-card-header>
+        </ion-card>
+
+        <!-- 2. Resumen del Pedido -->
+        <ion-card class="info-card">
+            <ion-card-header>
+                <ion-card-subtitle>Resumen del Pedido</ion-card-subtitle>
+                <ion-card-title>Pedido #{{ order.ID_Pedido }}</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+                <p><strong>Fecha:</strong> {{ order.Fecha_Creacion | date:'medium' }}</p>
+                <p><strong>Total:</strong> {{ order.Precio_Total | currency }}</p>
+                <div class="products-list ion-margin-top">
+                    <p class="products-title"><strong>Productos en este pedido:</strong></p>
+                    <div *ngFor="let item of items" class="product-item">
+                        <ion-badge color="light" slot="start">{{ item.Cantidad }}x</ion-badge>
+                        <span class="product-name">{{ item.Nombre_Producto }}</span>
+                    </div>
+                </div>
+                <p class="ion-margin-top"><strong>Estado:</strong> {{ order.Estado_Pedido }}</p>
+            </ion-card-content>
+        </ion-card>
+
+        <!-- 3. Opciones de Reporte -->
+        <div class="section-container">
+            <h3 class="section-title">Motivo del Reporte</h3>
+            <ion-list lines="none">
+                <ion-radio-group [(ngModel)]="selectedReason" (ionChange)="onReasonChange()">
+                    <ion-item *ngFor="let reason of reasons" class="reason-item">
+                        <ion-label class="ion-text-wrap">{{ reason.label }}</ion-label>
+                        <ion-radio slot="start" [value]="reason.value"></ion-radio>
+                    </ion-item>
+                </ion-radio-group>
+            </ion-list>
+        </div>
+
+        <!-- 4. Detalles Adicionales -->
+        <div class="section-container">
+            <h3 class="section-title">Detalles adicionales</h3>
+            <ion-item lines="none" class="textarea-item">
+                <ion-textarea [(ngModel)]="comments"
+                    placeholder="{{ selectedReason === 'Otro' ? 'Describe el problema (obligatorio)...' : 'Explica qué sucedió (opcional)...' }}"
+                    rows="4" [required]="selectedReason === 'Otro'"></ion-textarea>
+            </ion-item>
+            <p class="helper-text" *ngIf="selectedReason === 'Otro' && !comments.trim()">
+                Este campo es obligatorio cuando seleccionas "Otro".
+            </p>
+        </div>
+
+        <!-- 5. Botón de Envío -->
+        <div class="ion-padding-top">
+            <ion-button expand="block" shape="round" color="danger" (click)="submitReport()"
+                [disabled]="isSubmitDisabled()">
+                <ion-icon name="send-outline" slot="start"></ion-icon>
+                Enviar Reporte
+            </ion-button>
+            <p class="ion-text-center ion-margin-top disclaimer">
+                Un administrador revisará este reporte y se pondrá en contacto contigo.
+            </p>
+        </div>
+    </div>
+
+    <div *ngIf="!loading && !order" class="empty-state">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <p>No se pudo cargar la información del pedido.</p>
+        <ion-button fill="clear" (click)="loadOrder()">Reintentar</ion-button>
+    </div>
+</ion-content>

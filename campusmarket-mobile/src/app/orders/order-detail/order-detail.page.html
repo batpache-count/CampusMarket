@@ -1,45 +1,219 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/orders/order-list"></ion-back-button>
+      <ion-back-button [defaultHref]="isSeller ? '/seller-dashboard' : '/orders/order-list'" text=""></ion-back-button>
     </ion-buttons>
-    <ion-title>Detalle del Pedido</ion-title>
+    <ion-title>Detalle de {{ isSeller ? 'Venta' : 'Compra' }} #{{ (order?.ID_Pedido || order?._id) }}</ion-title>
+    <ion-buttons slot="end">
+      <!-- Save button removed -->
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-
-  <div *ngIf="loading" class="ion-text-center ion-padding">
+<ion-content>
+  <!-- Loading State -->
+  <div *ngIf="loading" class="center-msg">
     <ion-spinner></ion-spinner>
-    <p>Cargando detalles...</p>
+    <p>Cargando pedido...</p>
   </div>
 
-  <div *ngIf="!loading && orderDetails.length > 0">
-    <ion-list>
-      <ion-list-header>
-        <ion-label>Productos</ion-label>
-      </ion-list-header>
-
-      <ion-item *ngFor="let item of orderDetails">
-        <ion-thumbnail slot="start">
-          <!-- Placeholder or actual image -->
-          <img alt="Product" src="assets/icon/favicon.png" />
-        </ion-thumbnail>
-        <ion-label>
-          <h2>{{ item.Nombre_Producto }}</h2>
-          <p>Cantidad: {{ item.Cantidad }}</p>
-          <p>Precio Unitario: {{ item.Precio_Unitario | currency }}</p>
-        </ion-label>
-        <ion-note slot="end" color="primary">
-          {{ (item.Precio_Unitario * item.Cantidad) | currency }}
-        </ion-note>
-      </ion-item>
-    </ion-list>
-
-    <!-- Here we could add a total sum, though backend provides it in the order list object, not details array directly currently -->
+  <!-- Error State -->
+  <div *ngIf="!loading && !order" class="center-msg">
+    <p>No se encontró el pedido.</p>
   </div>
 
-  <div *ngIf="!loading && orderDetails.length === 0" class="ion-text-center ion-padding">
-    <p>No se encontraron detalles para este pedido.</p>
+  <!-- Content -->
+  <div *ngIf="!loading && order" class="container">
+
+    <!-- NUEVO SELECTOR DE ESTADO (Para Vendedores) -->
+    <div class="status-redo-card" *ngIf="isSeller">
+      <div class="card-header">ACTUALIZAR ESTADO</div>
+
+      <div class="current-status-display" [class]="localStatus">
+        <ion-icon [name]="getStatusIcon(localStatus)"></ion-icon>
+        <span>{{ localStatus }}</span>
+      </div>
+
+      <div class="status-options-grid">
+        <div class="status-chip" [class.active]="localStatus === 'Pendiente'" (click)="localStatus = 'Pendiente'">
+          <ion-icon name="time-outline"></ion-icon>
+          <span>Pendiente</span>
+        </div>
+        <div class="status-chip" [class.active]="localStatus === 'Autorizado'" (click)="localStatus = 'Autorizado'"
+          *ngIf="order.Metodo_Pago?.toLowerCase() === 'paypal'">
+          <ion-icon name="shield-checkmark-outline"></ion-icon>
+          <span>Retenido (Escrow)</span>
+        </div>
+        <div class="status-chip" [class.active]="localStatus === 'En preparacion'"
+          (click)="localStatus = 'En preparacion'">
+          <ion-icon name="restaurant-outline"></ion-icon>
+          <span>Preparando</span>
+        </div>
+        <div class="status-chip" [class.active]="localStatus === 'Listo'" (click)="localStatus = 'Listo'">
+          <ion-icon name="gift-outline"></ion-icon>
+          <span>Listo</span>
+        </div>
+        <div class="status-chip" [class.active]="localStatus === 'En camino'" (click)="localStatus = 'En camino'">
+          <ion-icon name="bicycle-outline"></ion-icon>
+          <span>En camino</span>
+        </div>
+        <div class="status-chip" [class.active]="localStatus === 'Entregado'" (click)="localStatus = 'Entregado'"
+          *ngIf="showEntregadoOption">
+          <ion-icon name="checkmark-done-outline"></ion-icon>
+          <span>Entregado</span>
+        </div>
+        <div class="status-chip" [class.active]="localStatus === 'Cancelado'" (click)="localStatus = 'Cancelado'">
+          <ion-icon name="close-circle-outline"></ion-icon>
+          <span>Cancelado</span>
+        </div>
+      </div>
+
+      <ion-button expand="block" (click)="saveChanges()" class="save-changes-btn"
+        [disabled]="localStatus === order.Estado_Pedido">
+        Actualizar Pedido
+      </ion-button>
+    </div>
+
+    <!-- PRODUCT CARD -->
+    <div class="card">
+      <div class="card-header">PRODUCTO</div>
+
+      <div class="product-wrapper">
+        <div class="img-box">
+          <img [src]="getProductImage(currentProduct?.Imagen_URL)" onerror="this.src='assets/banner-placeholder.jpg'">
+        </div>
+
+        <div class="info-box">
+          <h2 class="product-title">{{ currentProduct?.Nombre_Producto || 'Producto desconocido' }}</h2>
+
+          <div class="data-grid">
+            <div class="data-item">
+              <span class="d-label">CANTIDAD</span>
+              <span class="d-value">{{ currentProduct?.Cantidad }}</span>
+            </div>
+            <div class="data-item">
+              <span class="d-label">TOTAL</span>
+              <span class="d-value">{{ order.Precio_Total | currency }}</span>
+            </div>
+          </div>
+
+          <div class="stock-alert">
+            Stock Restante: <strong>{{ currentProduct?.Stock_Actual !== undefined ? currentProduct?.Stock_Actual : 'N/A'
+              }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLIENT/SELLER CARD -->
+    <div class="card">
+      <div class="card-header">{{ isSeller ? 'CLIENTE' : 'VENDEDOR' }}</div>
+
+      <div class="client-row">
+        <div class="avatar">
+          [src]="(isSeller ? order.Foto_Comprador : order.Foto_Vendedor) ? getProductImage(isSeller ?
+          order.Foto_Comprador : order.Foto_Vendedor) : 'https://ionicframework.com/docs/img/demos/avatar.svg'"
+          onerror="this.src='https://ionicframework.com/docs/img/demos/avatar.svg'">
+        </div>
+        <div class="client-details">
+          <div class="client-name">
+            {{ isSeller ? order.Nombre_Comprador : order.Nombre_Vendedor }}
+            {{ isSeller ? order.Apellido_Comprador : order.Apellido_Vendedor }}
+            <!-- Fallback if vendor fields missing but brand name exists -->
+            <span *ngIf="!isSeller && !order.Nombre_Vendedor && order.Nombre_Tienda">{{ order.Nombre_Tienda }}</span>
+          </div>
+
+          <a href="tel:{{isSeller ? order.Telefono_Comprador : order.Telefono_Vendedor}}" class="client-contact"
+            *ngIf="isSeller ? order.Telefono_Comprador : order.Telefono_Vendedor">
+            {{ isSeller ? order.Telefono_Comprador : order.Telefono_Vendedor }}
+          </a>
+          <div class="client-contact" *ngIf="!(isSeller ? order.Telefono_Comprador : order.Telefono_Vendedor)">Sin
+            teléfono</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="detail-line">
+        <ion-icon name="time-outline" style="margin-right:8px; color:#666;"></ion-icon>
+        <span>{{ order.Fecha_Creacion | date:'medium' }}</span>
+      </div>
+
+      <div class="detail-line">
+        <ion-icon [name]="order.Metodo_Pago?.toLowerCase() === 'paypal' ? 'card-outline' : 'cash-outline'"
+          style="margin-right:8px; color:#666;"></ion-icon>
+        <span>Pago: <strong>{{ order.Metodo_Pago }}</strong></span>
+      </div>
+
+      <!-- Delivery Notes -->
+      <div class="notes-box" *ngIf="orderNotes">
+        <strong>Nota de Entrega:</strong><br>
+        {{ orderNotes }}
+      </div>
+
+      <!-- WAITING STATUS (DUAL CONFIRMATION) -->
+      <div class="waiting-box" *ngIf="isWaitingForOther">
+        <ion-icon name="alert-circle-outline" color="warning"></ion-icon>
+        <p>
+          Esperando que el <strong>{{ isSeller ? 'Comprador' : 'Vendedor' }}</strong> confirme la entrega en efectivo
+          para finalizar el pedido.
+        </p>
+      </div>
+
+      <!-- BUYER CONFIRM BUTTON -->
+      <div class="buyer-actions" *ngIf="canConfirmReceipt">
+        <ion-button expand="block" color="success" (click)="confirmReceipt()" class="confirm-btn">
+          <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
+          Confirmar como Recibido
+        </ion-button>
+        <p class="btn-hint">Haz clic aquí solo después de recibir tus productos y pagar en efectivo.</p>
+      </div>
+
+      <!-- PAYPAL INFO & QR (For Buyers) -->
+      <div class="qr-container ion-text-center ion-padding"
+        *ngIf="!isSeller && order.Metodo_Pago?.toLowerCase() === 'paypal' && order.Estado_Pedido !== 'Entregado'">
+
+        <!-- PayPal info box removed as requested -->
+
+        <div class="divider"></div>
+
+        <h3>Tu Código de Entrega</h3>
+        <p>Muestra este QR al vendedor para confirmar que has recibido tus productos.</p>
+
+        <div class="qr-wrapper">
+          <img [src]="'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + order.QR_Token" alt="QR Code"
+            class="qr-image">
+        </div>
+
+        <div class="qr-token-row" (click)="copyToCode(order.QR_Token)">
+          <span class="qr-token">Tu Código: {{ order.QR_Token }}</span>
+          <ion-icon name="copy-outline"></ion-icon>
+        </div>
+      </div>
+
+      <!-- SCAN QR BUTTONS (For Sellers) -->
+      <div class="seller-actions ion-padding"
+        *ngIf="isSeller && order.Metodo_Pago?.toLowerCase() === 'paypal' && order.Estado_Pedido !== 'Entregado'">
+        <ion-button expand="block" color="secondary" (click)="scanOrderQR()">
+          <ion-icon name="qr-code-outline" slot="start"></ion-icon>
+          Escanear QR
+        </ion-button>
+        <ion-button expand="block" color="primary" fill="outline" (click)="enterCodeManually()" class="ion-margin-top">
+          <ion-icon name="keypad-outline" slot="start"></ion-icon>
+          Ingresar Código de Pago
+        </ion-button>
+        <p class="btn-hint">Usa el código del comprador para validar la entrega de PayPal.</p>
+      </div>
+
+
+      <!-- REPORT BUTTON -->
+      <div class="report-section">
+        <ion-button fill="clear" color="danger" (click)="openReportModal()" class="report-btn">
+          <ion-icon name="alert-circle-outline" slot="start"></ion-icon>
+          ¿Problemas con el pedido? Reportar Aquí
+        </ion-button>
+      </div>
+    </div>
+
   </div>
 </ion-content>

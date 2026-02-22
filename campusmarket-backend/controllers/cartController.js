@@ -15,7 +15,8 @@ exports.getCart = async (req, res) => {
                 p."Imagen_URL" as image,
                 p."Stock",
                 p."ID_Vendedor",
-                v."Nombre_Tienda" as seller
+                v."Nombre_Tienda" as seller,
+                v."PayPal_Email"
             FROM carrito c
             JOIN producto p ON c."ID_Producto" = p."ID_Producto"
             LEFT JOIN vendedor v ON p."ID_Vendedor" = v."ID_Vendedor"

@@ -1,24 +1,15 @@
-require('dotenv').config();
-const mysql = require('mysql2/promise');
+const { pool } = require('./config/database');
 
-async function testDB() {
-    console.log('Connectando a:', process.env.DB_NAME);
-    const connection = await mysql.createConnection({
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME
-    });
-
+(async () => {
     try {
-        console.log('Consultando tabla usuario...');
-        const [rows] = await connection.query('SELECT * FROM usuario LIMIT 1');
-        console.log('Resultado:', rows);
-    } catch (error) {
-        console.error('Error:', error.message);
-    } finally {
-        await connection.end();
+        console.log('🔌 Testing DB Connection...');
+        const client = await pool.connect();
+        const res = await client.query('SELECT NOW()');
+        console.log('✅ Database Connected!', res.rows[0]);
+        client.release();
+        process.exit(0);
+    } catch (err) {
+        console.error('❌ Database Connection Failed:', err);
+        process.exit(1);
     }
-}
-
-testDB();
+})();

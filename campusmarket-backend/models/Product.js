@@ -6,6 +6,29 @@ const { pool } = require('../config/database');
 class Product {
 
     /**
+     * Disminuye el stock de un producto (RF-C-004).
+     * @param {number} idProducto - ID_Producto.
+     * @param {number} cantidad - Cantidad a restar.
+     * @returns {boolean} Éxito.
+     */
+    static async decreaseStock(idProducto, cantidad) {
+        // Reducir stock y actualizar Activo si llega a 0
+        const query = `
+            UPDATE producto
+            SET "Stock" = "Stock" - $1,
+                "Activo" = CASE WHEN ("Stock" - $1) > 0 THEN TRUE ELSE FALSE END
+            WHERE "ID_Producto" = $2 AND "Stock" >= $1
+        `;
+        try {
+            const result = await pool.query(query, [cantidad, idProducto]);
+            return result.rowCount > 0;
+        } catch (error) {
+            console.error('Error en Product.decreaseStock:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Crea un nuevo producto (RF-V-002).
      * @param {number} idVendedor - ID_Vendedor.
      * @param {object} productData - { ID_Categoria, Nombre, Descripcion, Precio, Stock, Imagen_URL }

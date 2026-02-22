@@ -51,4 +51,16 @@ export class ProductService {
     getProductReviews(productId: number): Observable<any> {
         return this.http.get(`${this.apiUrl}/${productId}/reviews`);
     }
+
+    getMyInventory(): Observable<any[]> {
+        const token = localStorage.getItem('token');
+        const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+        return this.http.get<any[]>(`${this.apiUrl}/my-inventory`, { headers });
+    }
+
+    deleteProduct(id: number): Observable<any> {
+        const token = localStorage.getItem('token');
+        const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+        return this.http.delete(`${this.apiUrl}/${id}`, { headers });
+    }
 }
