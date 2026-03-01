@@ -33,6 +33,15 @@ export class AppComponent {
       this.user = user;
       if (user) {
         this.notificationService.getNotifications().subscribe();
+        // Redirect if on login page or at root
+        const currentUrl = this.router.url;
+        if (currentUrl === '/' || currentUrl === '/login' || currentUrl.startsWith('/login?')) {
+          if (user.rol === 'Vendedor') {
+            this.router.navigate(['/seller-dashboard']);
+          } else {
+            this.router.navigate(['/home']);
+          }
+        }
       }
     });
 

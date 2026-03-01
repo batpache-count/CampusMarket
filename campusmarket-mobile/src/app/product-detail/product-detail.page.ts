@@ -158,9 +158,13 @@ export class ProductDetailPage implements OnInit {
     await toast.present();
   }
 
-  getImageUrl(product: any): string {
-    if (!product) return 'assets/placeholder.svg';
-    const imageName = product.Imagen_URL || product.imagen_url || product.image;
+  getImageUrl(urlOrProduct: any): string {
+    if (!urlOrProduct) return 'assets/placeholder.svg';
+    if (typeof urlOrProduct === 'string') {
+      if (urlOrProduct.startsWith('http')) return urlOrProduct;
+      return `${this.apiUrl}/uploads/${urlOrProduct}`;
+    }
+    const imageName = urlOrProduct.Imagen_URL || urlOrProduct.imagen_url || urlOrProduct.image;
     if (!imageName) return 'assets/placeholder.svg';
     if (imageName.startsWith('http')) return imageName;
     return `${this.apiUrl}/uploads/${imageName}`;

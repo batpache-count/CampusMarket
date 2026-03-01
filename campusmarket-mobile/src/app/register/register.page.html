@@ -43,10 +43,27 @@
           <ion-input type="text" [(ngModel)]="userData.Apellido_Materno"></ion-input>
         </ion-item>
 
-        <ion-item lines="full">
-          <ion-label position="floating">Correo Electrónico</ion-label>
-          <ion-input type="email" [(ngModel)]="userData.Email" required></ion-input>
-        </ion-item>
+        <div class="input-group">
+          <ion-item lines="full" class="email-item">
+            <ion-label position="floating">Correo Electrónico</ion-label>
+            <ion-input type="email" [(ngModel)]="userData.Email" required [disabled]="codeSent"></ion-input>
+          </ion-item>
+          <div class="send-btn-container" *ngIf="!codeSent || countdown > 0">
+            <ion-button fill="clear" size="small" (click)="sendCode()" [disabled]="countdown > 0" class="send-code-btn">
+              {{ codeSent ? 'Reenviar en ' + countdown + 's' : 'Enviar Código de Verificación' }}
+            </ion-button>
+          </div>
+        </div>
+
+        <div class="verification-wrapper" *ngIf="codeSent">
+          <ion-item lines="full" class="code-item">
+            <ion-label position="stacked">Código de Verificación</ion-label>
+            <ion-input type="text" [(ngModel)]="userData.verificationCode" maxlength="6" required></ion-input>
+            <ion-icon name="checkmark-circle" slot="end" color="success"
+              *ngIf="userData.verificationCode.length === 6"></ion-icon>
+          </ion-item>
+          <p class="code-hint">Revisa tu bandeja de entrada o spam.</p>
+        </div>
 
         <ion-item lines="full">
           <ion-label position="floating">Contraseña</ion-label>

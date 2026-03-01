@@ -13,11 +13,14 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
+  <!-- Pull to Refresh -->
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
   <div class="profile-container ion-text-center">
     <div class="avatar-section">
       <div class="avatar-container" (click)="openImageModal()">
-        <img *ngIf="user && user.imagen_url" [src]="apiUrl + '/uploads/' + user.imagen_url" class="profile-img"
-          alt="Profile Logic">
+        <img *ngIf="user && user.imagen_url" [src]="getImageUrl(user.imagen_url)" class="profile-img" alt="Profile">
         <ion-icon *ngIf="!user || !user.imagen_url" name="person-circle-outline" color="medium"
           style="font-size: 120px;"></ion-icon>
       </div>
@@ -125,7 +128,7 @@
   <ion-modal [isOpen]="isModalOpen" (didDismiss)="closeImageModal()" class="image-modal-overlay">
     <ng-template>
       <div class="modal-wrapper" (click)="closeImageModal()">
-        <img *ngIf="user && user.imagen_url" [src]="apiUrl + '/uploads/' + user.imagen_url" class="full-image">
+        <img *ngIf="user && user.imagen_url" [src]="getImageUrl(user.imagen_url)" class="full-image">
         <ion-icon *ngIf="!user || !user.imagen_url" name="person-circle-outline" color="light"
           style="font-size: 200px;"></ion-icon>
       </div>

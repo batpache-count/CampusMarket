@@ -26,6 +26,17 @@ export class SellerDashboardPage implements OnInit, ViewWillEnter {
   statsPeriod = 'week';
   advStats: any = null;
 
+  // Profile Edit (Transferencia & PayPal)
+  numero_tarjeta = '';
+  nombre_banco = '';
+  nombre_cuenta = '';
+  descripcion_tienda = '';
+  nombre_tienda = '';
+  paypal_email = '';
+  transferencia_activo = false;
+  paypal_activo = false;
+  private initialState: any = {};
+
   loading = false;
   bannerImage = 'assets/banner-placeholder.jpg';
   apiUrl = environment.apiUrl;
@@ -60,9 +71,6 @@ export class SellerDashboardPage implements OnInit, ViewWillEnter {
     }
   }
 
-  changeBanner() {
-    console.log('Change banner clicked');
-  }
 
   openOrderDetails(order: any) {
     this.router.navigate(['/orders/order-detail', order.ID_Pedido], {
@@ -78,6 +86,188 @@ export class SellerDashboardPage implements OnInit, ViewWillEnter {
         this.loadOrders();
         // Pre-load products too if desired, or wait for tab switch
         this.loadMyProducts();
+        this.loadProfile(); // Load banner and extra info
+      }
+    });
+  }
+
+  loadProfile() {
+    this.sellerService.getProfile().subscribe({
+      next: (profile) => {
+        if (profile.banner_url) {
+          this.bannerImage = this.getImageUrl(profile.banner_url);
+        }
+        // Update user if needed (e.g. if imagen_url changed)
+        if (profile.imagen_url && this.user) {
+          this.user.imagen_url = profile.imagen_url;
+        }
+
+        // Fill edit fields
+        this.numero_tarjeta = profile.numero_tarjeta || '';
+        this.nombre_banco = profile.nombre_banco || '';
+        this.nombre_cuenta = profile.nombre_cuenta || '';
+        this.descripcion_tienda = profile.descripcion || '';
+        this.nombre_tienda = profile.nombre_tienda || '';
+        this.paypal_email = profile.paypal_email || '';
+        this.transferencia_activo = profile.transferencia_activo;
+        this.paypal_activo = profile.paypal_activo;
+        this.saveInitialState();
+      },
+      error: (err) => console.error('Error loading seller profile', err)
+    });
+  }
+
+  saveInitialState() {
+    this.initialState = {
+      nombre_tienda: this.nombre_tienda,
+      descripcion_tienda: this.descripcion_tienda,
+      numero_tarjeta: this.numero_tarjeta,
+      nombre_banco: this.nombre_banco,
+      nombre_cuenta: this.nombre_cuenta,
+      paypal_email: this.paypal_email,
+      transferencia_activo: this.transferencia_activo,
+      paypal_activo: this.paypal_activo
+    };
+  }
+
+  hasChanges(): boolean {
+    const cleanCurrentCard = (this.numero_tarjeta || '').replace(/\s/g, '');
+    const cleanInitialCard = (this.initialState.numero_tarjeta || '').replace(/\s/g, '');
+
+    return this.nombre_tienda !== this.initialState.nombre_tienda ||
+      this.descripcion_tienda !== this.initialState.descripcion_tienda ||
+      cleanCurrentCard !== cleanInitialCard ||
+      this.nombre_banco !== this.initialState.nombre_banco ||
+      this.nombre_cuenta !== this.initialState.nombre_cuenta ||
+      this.paypal_email !== this.initialState.paypal_email ||
+      this.transferencia_activo !== this.initialState.transferencia_activo ||
+      this.paypal_activo !== this.initialState.paypal_activo;
+  }
+
+  onCardNumberInput(event: any) {
+    let value = event.target.value.replace(/\D/g, ''); // Solo números
+    if (value.length > 18) value = value.substring(0, 18); // Límite CLABE
+
+    // Formatear: añadir espacio cada 4 dígitos
+    const parts = value.match(/.{1,4}/g);
+    this.numero_tarjeta = parts ? parts.join(' ') : value;
+  }
+
+  async saveProfile() {
+    if (!this.nombre_tienda) {
+      this.showToast('El nombre de la tienda es requerido', 'danger');
+      return;
+    }
+
+    if (this.numero_tarjeta && !this.isValidCardNumber(this.numero_tarjeta)) {
+      this.showToast('Número de tarjeta inválido', 'danger');
+      return;
+    }
+
+    // Validation for Transferencia
+    if (this.transferencia_activo) {
+      if (!this.nombre_banco || !this.nombre_cuenta || !this.numero_tarjeta) {
+        this.showToast('Para activar transferencias, debes completar Banco, Titular y Tarjeta.', 'warning');
+        return;
+      }
+      if (!this.isValidCardNumber(this.numero_tarjeta) && this.numero_tarjeta.length === 16) {
+        this.showToast('El número de tarjeta no es válido.', 'danger');
+        return;
+      }
+    }
+
+    // Validation for PayPal
+    if (this.paypal_activo && !this.paypal_email) {
+      this.showToast('Para activar PayPal, ingresa un correo válido.', 'warning');
+      return;
+    }
+
+    const loading = await this.loadingController.create({
+      message: 'Guardando perfil...'
+    });
+    await loading.present();
+
+    const data = {
+      nombre_tienda: this.nombre_tienda,
+      descripcion_tienda: this.descripcion_tienda,
+      numero_tarjeta: this.numero_tarjeta.replace(/\s/g, ''), // Limpiar antes de enviar
+      nombre_banco: this.nombre_banco,
+      nombre_cuenta: this.nombre_cuenta,
+      paypal_email: this.paypal_email,
+      transferencia_activo: this.transferencia_activo,
+      paypal_activo: this.paypal_activo
+    };
+
+    this.sellerService.updateProfile(data).subscribe({
+      next: () => {
+        loading.dismiss();
+        this.saveInitialState();
+        this.showToast('Perfil actualizado correctamente', 'success');
+      },
+      error: (err) => {
+        loading.dismiss();
+        console.error('Error saving profile', err);
+        this.showToast('Error al guardar el perfil', 'danger');
+      }
+    });
+  }
+
+  isValidCardNumber(num: string): boolean {
+    // Remove spaces/dashes
+    const cleanNum = num.replace(/\D/g, '');
+    if (cleanNum.length < 13 || cleanNum.length > 19) return false;
+
+    // Luhn Algorithm
+    let sum = 0;
+    let shouldDouble = false;
+    for (let i = cleanNum.length - 1; i >= 0; i--) {
+      let digit = parseInt(cleanNum.charAt(i));
+      if (shouldDouble) {
+        digit *= 2;
+        if (digit > 9) digit -= 9;
+      }
+      sum += digit;
+      shouldDouble = !shouldDouble;
+    }
+    return (sum % 10) === 0;
+  }
+
+  async showToast(message: string, color: string) {
+    const toast = await this.toastController.create({
+      message,
+      color,
+      duration: 2000,
+      position: 'bottom'
+    });
+    toast.present();
+  }
+
+  changeBanner() {
+    // Trigger hidden file input
+    const fileInput = document.getElementById('banner-input') as HTMLInputElement;
+    if (fileInput) fileInput.click();
+  }
+
+  async onBannerFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const loading = await this.loadingController.create({ message: 'Subiendo banner...' });
+    await loading.present();
+
+    const formData = new FormData();
+    formData.append('banner', file);
+
+    this.sellerService.uploadBanner(formData).subscribe({
+      next: async (res) => {
+        this.bannerImage = this.getImageUrl(res.bannerUrl);
+        await loading.dismiss();
+        await this.presentToast('Banner actualizado con éxito');
+      },
+      error: async (err) => {
+        console.error(err);
+        await loading.dismiss();
+        await this.presentToast('Error al subir banner');
       }
     });
   }
@@ -207,7 +397,7 @@ export class SellerDashboardPage implements OnInit, ViewWillEnter {
       duration: 2000,
       position: 'bottom'
     });
-    toast.present();
+    await toast.present();
   }
 
   segmentChanged(ev: any) {
@@ -311,12 +501,20 @@ export class SellerDashboardPage implements OnInit, ViewWillEnter {
 
   getStatusColor(status: string): string {
     switch (status) {
-      case 'Pendiente': return 'warning';
+      case 'Pendiente': return 'medium';
       case 'Autorizado': return 'primary';
-      case 'En camino': return 'secondary';
-      case 'Entregado': return 'success';
+      case 'En preparacion': return 'warning'; // Orange
+      case 'Listo': return 'tertiary'; // Purple
+      case 'En camino': return 'secondary'; // Blue
+      case 'Entregado': return 'success'; // Green
       case 'Cancelado': return 'danger';
       default: return 'medium';
     }
+  }
+
+  getImageUrl(url: string | null | undefined): string {
+    if (!url) return 'assets/placeholder.svg';
+    if (url.startsWith('http')) return url;
+    return `${this.apiUrl}/uploads/${url}`;
   }
 }

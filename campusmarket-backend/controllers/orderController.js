@@ -8,6 +8,86 @@ const Notification = require('../models/Notification');
 
 const crypto = require('crypto'); // Para generar tokens QR únicos
 const PayPalService = require('../services/paypalService');
+const multer = require('multer');
+const supabase = require('../config/supabaseClient'); // Add this for voucher upload
+
+// Multer memory storage (already used in others, but defining here for clarity if needed)
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+exports.upload = upload;
+
+/**
+ * Endpoint: POST /api/orders/:id/voucher
+ * Sube el comprobante de pago para pedidos por transferencia.
+ */
+exports.uploadVoucher = async (req, res) => {
+    const orderId = req.params.id;
+    const idComprador = req.user.ID_Usuario;
+
+    if (!req.file) {
+        return res.status(400).json({ message: 'No se recibió ninguna imagen del comprobante.' });
+    }
+
+    try {
+        const pedido = await Order.findById(orderId);
+        if (!pedido) {
+            return res.status(404).json({ message: 'Pedido no encontrado.' });
+        }
+
+        if (Number(pedido.ID_Comprador) !== Number(idComprador)) {
+            return res.status(403).json({ message: 'No tienes permiso para subir el comprobante de este pedido.' });
+        }
+
+        if (pedido.Metodo_Pago !== 'Transferencia') {
+            return res.status(400).json({ message: 'Este pedido no requiere comprobante de transferencia.' });
+        }
+
+        // Subir a Supabase
+        const photoUrl = await uploadToSupabase(req.file, `voucher-ped-${orderId}`);
+
+        // Actualizar en BD
+        await Order.updateVoucher(orderId, photoUrl);
+
+        // Notificar al vendedor
+        try {
+            const vendorUser = await User.findUserByVendorId(pedido.ID_Vendedor);
+            if (vendorUser) {
+                await Notification.create({
+                    ID_Usuario: vendorUser.ID_Usuario,
+                    Tipo: 'PAGO_EN_REVISION',
+                    Mensaje: `El comprador ha subido el comprobante para el pedido #${orderId}. Por favor, verifícalo.`,
+                    ID_Referencia: orderId
+                });
+            }
+        } catch (notifErr) {
+            console.error('Error notificando subida de voucher:', notifErr);
+        }
+
+        res.status(200).json({
+            message: 'Comprobante subido exitosamente. El vendedor ha sido notificado.',
+            url: photoUrl
+        });
+
+    } catch (error) {
+        console.error('Error en uploadVoucher:', error);
+        res.status(500).json({ message: 'Error interno al subir el comprobante.' });
+    }
+};
+
+const uploadToSupabase = async (file, prefix = 'voucher') => {
+    const fileName = `${prefix}-${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
+    const { data, error } = await supabase.storage
+        .from('images')
+        .upload(fileName, file.buffer, {
+            contentType: file.mimetype,
+            upsert: false
+        });
+    if (error) throw error;
+    const { data: { publicUrl } } = supabase.storage
+        .from('images')
+        .getPublicUrl(fileName);
+    return publicUrl;
+};
 
 /**
  * Endpoint: POST /api/orders
@@ -168,36 +248,30 @@ exports.createOrder = async (req, res) => {
             Metodo_Pago,
             PayPal_Transaction_ID,
             QR_Token: qrToken,
-            Estado_Pedido: estadoInicial
         });
 
-        // --- NOTIFICACIONES (Post-Venta) ---
+        // --- NOTIFICACIONES ---
         // No bloqueamos la respuesta si esto falla
         try {
             console.log('Iniciando proceso de notificaciones...');
-            // 1. Obtener ID_Usuario del Vendedor
             const vendorUser = await User.findUserByVendorId(ID_Vendedor);
-            console.log('Vendedor encontrado:', vendorUser);
 
             if (vendorUser) {
                 const sellerUserId = vendorUser.ID_Usuario;
 
-                // 2. Notificación de Nueva Venta
+                // 1. Notificación de Venta al Vendedor
                 await Notification.create({
                     ID_Usuario: sellerUserId,
                     Tipo: 'VENTA',
                     Mensaje: `¡Nueva venta! Pedido #${newPedidoId} por $${precioTotalCalculado}`,
                     ID_Referencia: newPedidoId
                 });
-                console.log('Notificación de VENTA creada.');
 
-                // 3. Verificar Stock y Notificar
+                // 2. Alertas de Stock al Vendedor
                 for (const item of itemsValidados) {
                     const product = await Product.findById(item.ID_Producto);
                     if (product) {
                         const currentStock = Number(product.Stock);
-                        console.log(`Producto ${product.Nombre} stock actual: ${currentStock}`);
-
                         if (currentStock <= 0) {
                             await Notification.create({
                                 ID_Usuario: sellerUserId,
@@ -205,7 +279,6 @@ exports.createOrder = async (req, res) => {
                                 Mensaje: `El producto "${product.Nombre}" se ha AGOTADO.`,
                                 ID_Referencia: product.ID_Producto
                             });
-                            console.log('Notificación AGOTADO creada.');
                         } else if (currentStock < 5) {
                             await Notification.create({
                                 ID_Usuario: sellerUserId,
@@ -213,15 +286,29 @@ exports.createOrder = async (req, res) => {
                                 Mensaje: `Stock bajo para "${product.Nombre}": quedan ${currentStock} unidades.`,
                                 ID_Referencia: product.ID_Producto
                             });
-                            console.log('Notificación STOCK_BAJO creada.');
                         }
                     }
                 }
-            } else {
-                console.warn('No se encontró usuario para el vendedor ID:', ID_Vendedor);
             }
         } catch (notifError) {
-            console.error('Error enviando notificaciones:', notifError);
+            console.error('Error enviando notificaciones al vendedor:', notifError);
+        }
+
+        // --- NOTIFICACIÓN PARA EL COMPRADOR (Confirmación de Pago/Registro) ---
+        try {
+            const msgPago = Metodo_Pago === 'PayPal'
+                ? `Pago de PayPal por $${precioTotalCalculado} autorizado correctamente.`
+                : `Pedido #${newPedidoId} registrado. Pago pendiente en efectivo por $${precioTotalCalculado}.`;
+
+            await Notification.create({
+                ID_Usuario: idComprador,
+                Tipo: 'PAGO_CONFIRMADO',
+                Mensaje: msgPago,
+                ID_Referencia: newPedidoId
+            });
+            console.log('Notificación de PAGO_CONFIRMADO para comprador creada.');
+        } catch (buyerNotifError) {
+            console.error('Error enviando notificación al comprador:', buyerNotifError);
         }
 
         res.status(201).json({
@@ -349,9 +436,41 @@ exports.updateOrderStatus = async (req, res) => {
             return res.status(403).json({ message: 'No tienes permiso para modificar este pedido.' });
         }
 
-        await Order.updateStatus(idPedido, newStatus, 'Vendedor');
+        const { finalStatus } = await Order.updateStatus(idPedido, newStatus, 'Vendedor');
 
-        res.status(200).json({ message: `Estado actualizado a "${newStatus}".` });
+        // --- NOTIFICACIÓN PARA EL COMPRADOR (Status Update) ---
+        try {
+            // Solo notificamos si el estado REAL del pedido cambió globalmente
+            // (En efectivo, puede que el vendedor cambie a 'Entregado' pero el pedido siga 'Listo' hasta que el comprador confirme)
+            if (finalStatus === newStatus) {
+                await Notification.create({
+                    ID_Usuario: pedido.ID_Comprador,
+                    Tipo: 'ESTADO_PEDIDO',
+                    Mensaje: `Tu pedido #${idPedido} ha cambiado a: ${newStatus}`,
+                    ID_Referencia: idPedido
+                });
+
+                // Si el estado es Entregado, añadir recordatorio de calificación
+                if (newStatus === 'Entregado') {
+                    await Notification.create({
+                        ID_Usuario: pedido.ID_Comprador,
+                        Tipo: 'RECORDATORIO_CALIFICACION',
+                        Mensaje: `¿Qué te pareció tu pedido #${idPedido}? ¡No olvides calificar al vendedor!`,
+                        ID_Referencia: idPedido
+                    });
+                }
+            } else {
+                console.log(`[StatusUpdate] El estado global no cambió a ${newStatus} aún (Estado actual: ${finalStatus}). Esperando confirmación de la otra parte.`);
+            }
+        } catch (notifError) {
+            console.error('Error enviando notificación de estado al comprador:', notifError);
+        }
+
+        res.status(200).json({
+            message: finalStatus === newStatus
+                ? `Estado actualizado a "${newStatus}".`
+                : `Confirmación registrada. El pedido cambiará a "${newStatus}" cuando el comprador también confirme.`
+        });
 
     } catch (error) {
         console.error('Error en updateOrderStatus:', error);
@@ -452,7 +571,31 @@ exports.validateQR = async (req, res) => {
         }
 
         // Actualizar estado a Entregado
-        await Order.updateStatus(orderId, 'Entregado', 'Vendedor (QR)');
+        const { finalStatus } = await Order.updateStatus(orderId, 'Entregado', 'Vendedor (QR)');
+
+        // --- NOTIFICACIONES PARA EL COMPRADOR (QR Validation) ---
+        try {
+            if (finalStatus === 'Entregado') {
+                // Notificación de estado
+                await Notification.create({
+                    ID_Usuario: pedido.ID_Comprador,
+                    Tipo: 'ESTADO_PEDIDO',
+                    Mensaje: `¡Pedido #${orderId} entregado con éxito!`,
+                    ID_Referencia: orderId
+                });
+
+                // Recordatorio de Calificación
+                await Notification.create({
+                    ID_Usuario: pedido.ID_Comprador,
+                    Tipo: 'RECORDATORIO_CALIFICACION',
+                    Mensaje: `¿Qué te pareció tu pedido #${orderId}? ¡No olvides calificar al vendedor!`,
+                    ID_Referencia: orderId
+                });
+            }
+        } catch (notifError) {
+            console.error('Error enviando notificaciones post-QR:', notifError);
+        }
+
         fs.appendFileSync(logPath, `[${timestamp}] SUCCESS: Order ${orderId} delivered\n`);
 
         res.status(200).json({ message: '¡Entrega y Pago procesados con éxito! El vendedor recibirá su pago en breve.' });
@@ -540,6 +683,18 @@ exports.confirmReceipt = async (req, res) => {
 
         // Actualizar estado
         await Order.updateStatus(idPedido, 'Entregado', 'Comprador');
+
+        // --- NOTIFICACIÓN PARA EL COMPRADOR (Rating Reminder) ---
+        try {
+            await Notification.create({
+                ID_Usuario: idComprador,
+                Tipo: 'RECORDATORIO_CALIFICACION',
+                Mensaje: `¿Qué te pareció tu pedido #${idPedido}? ¡No olvides calificar al vendedor!`,
+                ID_Referencia: idPedido
+            });
+        } catch (notifError) {
+            console.error('Error enviando recordatorio de calificación:', notifError);
+        }
 
         res.status(200).json({ message: 'Pedido confirmado como recibido. ¡Gracias!' });
 
@@ -731,3 +886,4 @@ exports.authorizePayPalOrder = async (req, res) => {
         });
     }
 };
+

@@ -28,7 +28,7 @@
     <ion-item-sliding *ngFor="let product of products">
       <ion-item lines="full">
         <ion-thumbnail slot="start">
-          <img [src]="apiUrl + '/uploads/' + product.Imagen_URL" alt="{{ product.Nombre }}"
+          <img [src]="getImageUrl(product.Imagen_URL)" alt="{{ product.Nombre }}"
             onerror="this.src='assets/placeholder.svg'" />
         </ion-thumbnail>
         <ion-label>

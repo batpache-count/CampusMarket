@@ -21,6 +21,22 @@ export class LoginPage implements OnInit {
   ) { }
 
   ngOnInit() {
+    this.checkSession();
+  }
+
+  private checkSession() {
+    const user = this.authService.getCurrentUser();
+    if (user) {
+      this.redirectUser(user);
+    }
+  }
+
+  private redirectUser(user: any) {
+    if (user.rol === 'Vendedor') {
+      this.router.navigate(['/seller-dashboard']);
+    } else {
+      this.router.navigate(['/home']);
+    }
   }
 
   async onLogin() {
@@ -39,7 +55,7 @@ export class LoginPage implements OnInit {
       next: async (res) => {
         await loading.dismiss();
         console.log('Login exitoso', res);
-        this.router.navigate(['/home']);
+        this.redirectUser(res.user);
       },
       error: async (err) => {
         await loading.dismiss();

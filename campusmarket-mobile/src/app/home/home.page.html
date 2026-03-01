@@ -7,9 +7,11 @@
       CampusMarket
     </ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="goToCart()" color="light">
+      <ion-button (click)="goToCart()" color="light" class="cart-button">
         <ion-icon slot="icon-only" name="cart-outline"></ion-icon>
-        <span *ngIf="cartCount > 0" class="cart-badge-dot"></span>
+        <ion-badge color="danger" *ngIf="cartCount > 0" class="cart-badge">
+          {{ cartCount }}
+        </ion-badge>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -22,12 +24,11 @@
 
     <!-- Category Chips -->
     <div class="categories-container">
-      <ion-chip [outline]="selectedCategory !== ''" [color]="selectedCategory === '' ? 'primary' : 'medium'"
-        (click)="selectCategory('')">
+      <ion-chip [class.chip-selected]="selectedCategory === ''" class="category-chip" (click)="selectCategory('')">
         <ion-label>Todos</ion-label>
       </ion-chip>
-      <ion-chip *ngFor="let cat of categories" [outline]="selectedCategory !== cat.Nombre"
-        [color]="selectedCategory === cat.Nombre ? 'primary' : 'medium'" (click)="selectCategory(cat.Nombre)">
+      <ion-chip *ngFor="let cat of categories" [class.chip-selected]="selectedCategory === cat.Nombre"
+        class="category-chip" (click)="selectCategory(cat.Nombre)">
         <ion-label>{{ cat.Nombre }}</ion-label>
       </ion-chip>
     </div>
@@ -56,7 +57,6 @@
             <img [src]="getImageUrl(product)" alt="{{ product.Nombre }}" onerror="this.src='assets/placeholder.svg'" />
 
             <ion-badge *ngIf="product.Stock <= 0" color="dark" class="stock-badge">AGOTADO</ion-badge>
-            <ion-badge *ngIf="product.Stock > 0" color="success" class="stock-badge">NUEVO</ion-badge>
           </div>
           <ion-card-header>
             <ion-card-subtitle>{{ product.Categoria }}</ion-card-subtitle>

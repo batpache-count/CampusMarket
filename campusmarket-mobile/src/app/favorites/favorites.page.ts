@@ -40,4 +40,10 @@ export class FavoritesPage implements OnInit {
   goToDetail(id: number) {
     this.router.navigate(['/product-detail', id]);
   }
+
+  getImageUrl(url: string | null | undefined): string {
+    if (!url) return 'assets/placeholder.svg';
+    if (url.startsWith('http')) return url;
+    return `${this.apiUrl}/uploads/${url}`;
+  }
 }

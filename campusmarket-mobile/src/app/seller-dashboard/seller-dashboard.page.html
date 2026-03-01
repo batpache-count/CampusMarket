@@ -17,9 +17,12 @@
   <div class="banner-container">
     <img [src]="bannerImage" alt="Banner" class="banner-img" onerror="this.src='assets/banner-placeholder.jpg'">
 
+    <!-- Hidden File Input for Banner -->
+    <input type="file" id="banner-input" style="display: none" accept="image/*" (change)="onBannerFileSelected($event)">
+
     <!-- Edit Button (Subtle) -->
     <ion-button class="banner-edit-btn" fill="clear" size="small" (click)="changeBanner()">
-      <ion-icon name="ellipsis-vertical" slot="icon-only"></ion-icon>
+      <ion-icon name="camera-outline" slot="icon-only"></ion-icon>
     </ion-button>
   </div>
 
@@ -28,9 +31,9 @@
     <ion-card class="profile-card">
       <ion-card-content class="profile-content">
         <ion-avatar class="profile-avatar">
-          <img
-            [src]="user?.imagen_url ? apiUrl + '/uploads/' + user.imagen_url : 'https://ionicframework.com/docs/img/demos/avatar.svg'"
+          <img *ngIf="user?.imagen_url" [src]="getImageUrl(user.imagen_url)"
             onerror="this.src='https://ionicframework.com/docs/img/demos/avatar.svg'" />
+          <ion-icon *ngIf="!user?.imagen_url" name="person-circle-outline" color="medium"></ion-icon>
         </ion-avatar>
         <div class="profile-info">
           <h2 class="profile-name">{{ user?.nombre }} {{ user?.apellido_paterno }}</h2>
@@ -58,6 +61,9 @@
       <ion-segment-button value="estadisticas">
         <ion-label>Estadísticas</ion-label>
       </ion-segment-button>
+      <ion-segment-button value="config">
+        <ion-label>Configuración</ion-label>
+      </ion-segment-button>
     </ion-segment>
   </div>
 
@@ -76,7 +82,7 @@
           <div class="order-card-content">
             <div class="order-image-container">
               <img
-                [src]="order.items && order.items.length > 0 && order.items[0].Imagen_URL ? apiUrl + '/uploads/' + order.items[0].Imagen_URL : 'assets/placeholder.svg'"
+                [src]="order.items && order.items.length > 0 && order.items[0].Imagen_URL ? getImageUrl(order.items[0].Imagen_URL) : 'assets/placeholder.svg'"
                 onerror="this.src='assets/placeholder.svg'" />
             </div>
             <div class="order-info">
@@ -94,10 +100,18 @@
                 {{ order.Fecha_Creacion | date:'MMM d, y, h:mm a' }}
               </p>
               <div class="order-footer">
-                <span class="order-price">{{ order.Precio_Total | currency }}</span>
-                <ion-badge color="tertiary" *ngIf="order.Metodo_Pago === 'PayPal'" class="pp-badge">
-                  <ion-icon name="card"></ion-icon>
-                </ion-badge>
+                <div class="payment-price-container">
+                  <ion-badge color="tertiary" *ngIf="order.Metodo_Pago === 'PayPal'" class="pp-badge">
+                    <ion-icon name="card"></ion-icon>
+                  </ion-badge>
+                  <ion-badge color="success" *ngIf="order.Metodo_Pago === 'Efectivo'" class="cash-badge">
+                    <ion-icon name="cash"></ion-icon>
+                  </ion-badge>
+                  <ion-badge *ngIf="order.Metodo_Pago?.toLowerCase() === 'transferencia'" class="transfer-badge">
+                    <ion-icon name="swap-horizontal"></ion-icon>
+                  </ion-badge>
+                  <span class="order-price">{{ order.Precio_Total | currency }}</span>
+                </div>
                 <ion-badge [color]="getStatusColor(order.Estado_Pedido)" class="order-badge">
                   {{ order.Estado_Pedido }}
                 </ion-badge>
@@ -129,7 +143,7 @@
         <ion-item-sliding *ngFor="let product of products">
           <ion-item lines="full" detail="false">
             <ion-thumbnail slot="start">
-              <img [src]="apiUrl + '/uploads/' + product.Imagen_URL" alt="{{ product.Nombre }}"
+              <img [src]="getImageUrl(product.Imagen_URL)" alt="{{ product.Nombre }}"
                 onerror="this.src='assets/placeholder.svg'" />
             </ion-thumbnail>
             <ion-label>
@@ -280,7 +294,7 @@
           </ion-card-header>
           <ion-card-content>
             <div class="product-highlight-body">
-              <img [src]="apiUrl + '/uploads/' + advStats.mostRequested.Imagen_URL"
+              <img [src]="getImageUrl(advStats.mostRequested.Imagen_URL)"
                 onerror="this.src='assets/icon/favicon.png'" />
               <div class="highlight-info">
                 <p class="count">{{ advStats.mostRequested.Total_Vendido }} vendidos</p>
@@ -297,7 +311,7 @@
           <ion-item *ngFor="let prod of advStats?.topProducts; let i = index">
             <ion-badge slot="start" [color]="i < 3 ? 'warning' : 'medium'" class="rank-badge">#{{ i + 1 }}</ion-badge>
             <ion-thumbnail slot="start">
-              <img [src]="apiUrl + '/uploads/' + prod.Imagen_URL" onerror="this.src='assets/icon/favicon.png'" />
+              <img [src]="getImageUrl(prod.Imagen_URL)" onerror="this.src='assets/icon/favicon.png'" />
             </ion-thumbnail>
             <ion-label>
               <h2>{{ prod.Nombre }}</h2>
@@ -316,6 +330,99 @@
       </div>
     </div>
 
+    <!-- 5. Configuración Tab -->
+    <div *ngSwitchCase="'config'" class="tab-content">
+      <ion-card class="config-card">
+        <ion-card-header>
+          <ion-card-title>Datos de la Tienda</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-item lines="full" class="config-item">
+            <ion-input [(ngModel)]="nombre_tienda" label="Nombre de la Tienda" label-placement="stacked"
+              placeholder="Ej: Mi Tiendita"></ion-input>
+          </ion-item>
+          <ion-item lines="full" class="config-item">
+            <ion-textarea [(ngModel)]="descripcion_tienda" label="Descripción" label-placement="stacked" rows="3"
+              placeholder="Cuéntales a tus clientes qué vendes..."></ion-textarea>
+          </ion-item>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="config-card">
+        <ion-card-header>
+          <div class="header-with-toggle">
+            <div class="title-section">
+              <ion-icon name="swap-horizontal-outline" color="primary"></ion-icon>
+              <ion-card-title>1. Transferencia Bancaria</ion-card-title>
+            </div>
+            <ion-toggle [(ngModel)]="transferencia_activo" color="success"></ion-toggle>
+          </div>
+          <ion-card-subtitle>Permite a tus clientes pagarte directamente</ion-card-subtitle>
+        </ion-card-header>
+        <ion-card-content [style.opacity]="transferencia_activo ? '1' : '0.6'">
+          <p class="info-text">
+            Si activas esta opción, debes completar todos los datos para que el cliente pueda realizar el pago.
+          </p>
+          <ion-item lines="full" class="config-item">
+            <ion-input [(ngModel)]="nombre_banco" label="Banco" label-placement="stacked"
+              placeholder="Ej: BBVA, NU, Banamex, etc."></ion-input>
+          </ion-item>
+          <ion-item lines="full" class="config-item">
+            <ion-input [(ngModel)]="nombre_cuenta" label="Nombre del Titular" label-placement="stacked"
+              placeholder="Nombre completo del titular de la cuenta"></ion-input>
+          </ion-item>
+          <ion-item lines="full" class="config-item">
+            <ion-input [(ngModel)]="numero_tarjeta" label="Número de Tarjeta o CLABE" label-placement="stacked"
+              type="text" placeholder="16 o 18 dígitos" (ionInput)="onCardNumberInput($event)"></ion-input>
+          </ion-item>
+
+          <div class="validation-note" *ngIf="numero_tarjeta && numero_tarjeta.split(' ').join('').length === 16">
+            <ion-note [color]="isValidCardNumber(numero_tarjeta) ? 'success' : 'danger'">
+              <ion-icon [name]="isValidCardNumber(numero_tarjeta) ? 'checkmark-circle' : 'alert-circle'"></ion-icon>
+              {{ isValidCardNumber(numero_tarjeta) ? 'Tarjeta válida' : 'Número de tarjeta inválido' }}
+            </ion-note>
+          </div>
+          <div class="validation-note" *ngIf="numero_tarjeta && numero_tarjeta.split(' ').join('').length === 18">
+            <ion-note color="primary">
+              <ion-icon name="information-circle"></ion-icon>
+              CLABE detectada (18 dígitos)
+            </ion-note>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="config-card">
+        <ion-card-header>
+          <div class="header-with-toggle">
+            <div class="title-section">
+              <ion-icon name="logo-paypal" color="primary"></ion-icon>
+              <ion-card-title>2. PayPal</ion-card-title>
+            </div>
+            <ion-toggle [(ngModel)]="paypal_activo" color="success"></ion-toggle>
+          </div>
+          <ion-card-subtitle>Recibe pagos automáticos con tarjeta</ion-card-subtitle>
+        </ion-card-header>
+        <ion-card-content [style.opacity]="paypal_activo ? '1' : '0.6'">
+          <p class="info-text">
+            Ingresa tu correo de PayPal vinculado para recibir pagos.
+          </p>
+          <ion-item lines="full" class="config-item">
+            <ion-input [(ngModel)]="paypal_email" label="Correo de PayPal" label-placement="stacked" type="email"
+              placeholder="ejemplo@correo.com"></ion-input>
+          </ion-item>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Save Button moved to fixed bottom as requested -->
+      <div class="fixed-bottom-padding"></div>
+    </div>
   </div>
 
+  <ion-fab vertical="bottom" horizontal="center" slot="fixed" *ngIf="selectedTab === 'config' && hasChanges()"
+    class="save-fab">
+    <ion-button (click)="saveProfile()" class="save-btn-floating">
+      <ion-icon name="save-outline" slot="start"></ion-icon>
+      GUARDAR CAMBIOS
+    </ion-button>
+  </ion-fab>
 </ion-content>

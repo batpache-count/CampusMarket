@@ -1,0 +1,21 @@
+--- USUARIO ---
+ID_Usuario: integer
+Nombre: text
+Apellido_Paterno: text
+Apellido_Materno: text
+Email: text
+Contrasena: text
+Telefono: text
+Rol: text
+Imagen_URL: text
+Fecha_Registro: timestamp without time zone
+
+--- VENDEDOR ---
+ID_Vendedor: integer
+ID_Usuario: integer
+Nombre_Tienda: text
+Descripcion_Tienda: text
+Estado_Tienda: text
+Tiempo_Arrepentimiento_Min: integer
+Tiempo_Retraso_Comida_Min: integer
+PayPal_Email: text

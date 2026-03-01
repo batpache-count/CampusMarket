@@ -48,7 +48,7 @@
         <ion-item-sliding *ngFor="let item of group.items" class="cart-item-sliding">
           <ion-item (click)="configureItem(item)" detail="true" button class="cart-item">
             <ion-thumbnail slot="start" class="product-thumb">
-              <img [src]="apiUrl + '/uploads/' + item.image" onerror="this.src='assets/placeholder.svg'" />
+              <img [src]="getImageUrl(item.image)" onerror="this.src='assets/placeholder.svg'" />
             </ion-thumbnail>
             <ion-label>
               <h2>{{ item.name }}</h2>

@@ -7,34 +7,48 @@
     </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="ion-padding">
-    <div *ngIf="loading" class="ion-text-center ion-padding">
-        <ion-spinner></ion-spinner>
-        <p>Cargando productos...</p>
+<ion-content [fullscreen]="true">
+    <!-- Store Header -->
+    <div class="store-header" *ngIf="!loading && sellerName">
+        <div class="banner-container">
+            <img [src]="getImageUrl(sellerBanner, 'assets/banner-placeholder.jpg')"
+                onerror="this.src='assets/banner-placeholder.jpg'" class="banner-img">
+        </div>
+        <div class="store-info-overlay">
+            <h1 class="store-title">{{ sellerName }}</h1>
+            <p class="store-desc" *ngIf="sellerDescription">{{ sellerDescription }}</p>
+        </div>
     </div>
 
-    <div *ngIf="!loading && products.length === 0" class="ion-text-center ion-padding">
-        <p>No se encontraron productos de este vendedor.</p>
-    </div>
+    <div class="ion-padding">
+        <div *ngIf="loading" class="ion-text-center ion-padding">
+            <ion-spinner></ion-spinner>
+            <p>Cargando productos...</p>
+        </div>
 
-    <ion-grid *ngIf="!loading && products.length > 0">
-        <ion-row>
-            <ion-col size="6" size-md="4" size-lg="3" *ngFor="let product of products">
-                <ion-card class="product-card" [routerLink]="['/product-detail', product.ID_Producto]">
-                    <div class="image-container">
-                        <img [src]="apiUrl + '/uploads/' + product.Imagen_URL" alt="{{ product.Nombre }}"
-                            onerror="this.src='assets/placeholder.svg'" />
-                        <ion-badge *ngIf="product.Stock <= 0" color="dark" class="stock-badge">AGOTADO</ion-badge>
-                    </div>
-                    <ion-card-header>
-                        <ion-card-subtitle>{{ product.Categoria }}</ion-card-subtitle>
-                        <ion-card-title>{{ product.Nombre }}</ion-card-title>
-                    </ion-card-header>
-                    <ion-card-content>
-                        <h3 class="price">{{ product.Precio | currency }}</h3>
-                    </ion-card-content>
-                </ion-card>
-            </ion-col>
-        </ion-row>
-    </ion-grid>
+        <div *ngIf="!loading && products.length === 0" class="ion-text-center ion-padding">
+            <p>No se encontraron productos de este vendedor.</p>
+        </div>
+
+        <ion-grid *ngIf="!loading && products.length > 0">
+            <ion-row>
+                <ion-col size="6" size-md="4" size-lg="3" *ngFor="let product of products">
+                    <ion-card class="product-card" [routerLink]="['/product-detail', product.ID_Producto]">
+                        <div class="image-container">
+                            <img [src]="getImageUrl(product.Imagen_URL)" alt="{{ product.Nombre }}"
+                                onerror="this.src='assets/placeholder.svg'" />
+                            <ion-badge *ngIf="product.Stock <= 0" color="dark" class="stock-badge">AGOTADO</ion-badge>
+                        </div>
+                        <ion-card-header>
+                            <ion-card-subtitle>{{ product.Categoria }}</ion-card-subtitle>
+                            <ion-card-title>{{ product.Nombre }}</ion-card-title>
+                        </ion-card-header>
+                        <ion-card-content>
+                            <h3 class="price">{{ product.Precio | currency }}</h3>
+                        </ion-card-content>
+                    </ion-card>
+                </ion-col>
+            </ion-row>
+        </ion-grid>
+    </div>
 </ion-content>

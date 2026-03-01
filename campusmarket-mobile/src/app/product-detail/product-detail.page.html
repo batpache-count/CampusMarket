@@ -39,10 +39,14 @@
 
       <p class="description">{{ product.Descripcion }}</p>
 
-      <div class="seller-info" *ngIf="product.Nombre_Tienda" [routerLink]="['/seller-products']"
-        [queryParams]="{name: product.Nombre_Tienda}" style="cursor: pointer;">
-        <ion-icon name="storefront-outline"></ion-icon>
-        <span>Vendido por: <strong>{{ product.Nombre_Tienda }}</strong></span>
+      <div class="seller-info-container" *ngIf="product.Nombre_Tienda">
+        <div class="seller-main" [routerLink]="['/seller-products']" [queryParams]="{name: product.Nombre_Tienda}">
+          <ion-icon name="storefront-outline"></ion-icon>
+          <span>Vendido por: <strong>{{ product.Nombre_Tienda }}</strong></span>
+        </div>
+        <p class="seller-description" *ngIf="product.Descripcion_Tienda">
+          {{ product.Descripcion_Tienda }}
+        </p>
       </div>
 
       <div class="stock-info">

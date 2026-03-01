@@ -215,6 +215,7 @@ export class OrderDetailPage implements OnInit {
       case 'En camino': return 'bicycle-outline';
       case 'Entregado': return 'bag-check-outline';
       case 'Cancelado': return 'ban-outline';
+      case 'Pagado': return 'card-outline'; // Added for clarity
       default: return 'help-circle-outline';
     }
   }
@@ -222,7 +223,7 @@ export class OrderDetailPage implements OnInit {
   getStatusColor(status: string): string {
     switch (status) {
       case 'Pendiente': return 'warning';
-      case 'Autorizado': return 'primary'; // Azul para indicar que el dinero está asegurado
+      case 'Autorizado': return 'primary';
       case 'Pagado': return 'success';
       case 'En preparacion': return 'secondary';
       case 'Listo': return 'primary';
@@ -233,10 +234,49 @@ export class OrderDetailPage implements OnInit {
     }
   }
 
+  // --- Bank Transfer Voucher Logic ---
+
+  async selectVoucher() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (event: any) => {
+      const file = event.target.files[0];
+      if (file) {
+        this.uploadVoucher(file);
+      }
+    };
+    input.click();
+  }
+
+  async uploadVoucher(file: File) {
+    if (!this.orderId) return;
+
+    this.loading = true;
+    this.orderService.uploadVoucher(this.orderId.toString(), file).subscribe({
+      next: async (res: any) => {
+        this.presentToast('Comprobante subido. Esperando verificación del vendedor.', 'success');
+        this.loadDetails(); // Reload to show the voucher and updated status
+      },
+      error: async (err: any) => {
+        this.loading = false;
+        console.error('Error uploading voucher:', err);
+        const msg = err.error?.message || 'Error al subir el comprobante.';
+        this.presentToast(msg, 'danger');
+      }
+    });
+  }
+
   getProductImage(imageName: string): string {
-    if (!imageName) return 'assets/banner-placeholder.jpg';
+    if (!imageName) return 'assets/placeholder.svg';
     if (imageName.startsWith('http')) return imageName;
     return `${this.apiUrl}/uploads/${imageName}`;
+  }
+
+  getImageUrl(url: string | null | undefined): string {
+    if (!url) return 'assets/placeholder.svg';
+    if (url.startsWith('http')) return url;
+    return `${this.apiUrl}/uploads/${url}`;
   }
 
   async presentToast(message: string, color: string = 'success') {

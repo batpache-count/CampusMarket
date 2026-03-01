@@ -50,21 +50,22 @@ async function reset() {
             INSERT INTO public.usuario ("Nombre", "Apellido_Paterno", "Apellido_Materno", "Email", "Contrasena", "Rol")
             VALUES 
             ('Jorge', 'Alberto', 'Test', 'jorge@gmail.com', $1, 'Comprador'),
-            ('Daniela', 'Vendedora', 'Test', 'daniela@gmail.com', $1, 'Vendedor')
+            ('Daniela', 'Admin', 'Test', 'daniela@gmail.com', $1, 'Administrador'),
+            ('Elena', 'Vendedora', 'Test', 'elena@gmail.com', $1, 'Vendedor')
             RETURNING "ID_Usuario", "Email"
         `, [hashedPass]);
 
-        const sellerUser = userRes.rows.find(u => u.Email === 'daniela@gmail.com');
-        console.log('✅ Usuarios base creados (jorge@gmail.com / daniela@gmail.com)');
+        const sellerUser = userRes.rows.find(u => u.Email === 'elena@gmail.com');
+        console.log('✅ Usuarios base creados (jorge / daniela / elena)');
 
         // 4. Crear Perfil de Vendedor
         const vendorRes = await client.query(`
             INSERT INTO public.vendedor ("ID_Usuario", "Nombre_Tienda", "Descripcion_Tienda", "PayPal_Email")
             VALUES ($1, $2, $3, $4)
             RETURNING "ID_Vendedor"
-        `, [sellerUser.ID_Usuario, 'La Tienda de Daniela', 'Productos frescos del campus', 'sb-facilitator@pixelperfect.com']);
+        `, [sellerUser.ID_Usuario, 'La Tienda de Elena', 'Productos frescos del campus', 'sb-facilitator@pixelperfect.com']);
         const vendorId = vendorRes.rows[0].ID_Vendedor;
-        console.log('✅ Perfil de vendedor creado.');
+        console.log('✅ Perfil de vendedor creado para Elena.');
 
         // 5. Insertar Productos
         await client.query(`

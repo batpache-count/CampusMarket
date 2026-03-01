@@ -12,21 +12,22 @@ router.post('/register', authController.register);
 // POST /api/auth/login
 router.post('/login', authController.login);
 
+// POST /api/auth/send-verification-code
+router.post('/send-verification-code', authController.sendVerificationCode);
+
+// POST /api/auth/verify-code
+router.post('/verify-code', authController.verifyCode);
+
 // PUT /api/auth/profile
 const multer = require('multer');
 const path = require('path');
 
-// --- Multer Config (Profile Images) ---
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/'); // Using same uploads folder for simplicity
-    },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname));
-    }
+// --- Multer Config (Profile Images to memory) ---
+const storage = multer.memoryStorage();
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 } // Limite 5MB
 });
-const upload = multer({ storage: storage });
 
 // PUT /api/auth/profile
 // Ahora acepta imagen bajo el campo 'image'

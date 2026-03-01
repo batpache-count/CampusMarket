@@ -110,7 +110,8 @@ class User {
      */
     static async findUserByVendorId(vendorId) {
         const query = `
-            SELECT "ID_Usuario", "PayPal_Email" FROM vendedor 
+            SELECT "ID_Usuario", "PayPal_Email", "Numero_Tarjeta", "Nombre_Banco", "Nombre_Cuenta", "Transferencia_Activo", "PayPal_Activo" 
+            FROM vendedor 
             WHERE "ID_Vendedor" = $1
         `;
         try {
@@ -184,7 +185,13 @@ class User {
             Descripcion_Tienda,
             Estado_Tienda,
             Tiempo_Arrepentimiento_Min,
-            Tiempo_Retraso_Comida_Min
+            Tiempo_Retraso_Comida_Min,
+            Numero_Tarjeta,
+            Nombre_Banco,
+            Nombre_Cuenta,
+            PayPal_Email,
+            Transferencia_Activo,
+            PayPal_Activo
         } = profileData;
 
         const query = `
@@ -194,8 +201,14 @@ class User {
                 "Descripcion_Tienda" = $2,
                 "Estado_Tienda" = $3,
                 "Tiempo_Arrepentimiento_Min" = $4,
-                "Tiempo_Retraso_Comida_Min" = $5
-            WHERE "ID_Vendedor" = $6
+                "Tiempo_Retraso_Comida_Min" = $5,
+                "Numero_Tarjeta" = $6,
+                "Nombre_Banco" = $7,
+                "Nombre_Cuenta" = $8,
+                "PayPal_Email" = $9,
+                "Transferencia_Activo" = $10,
+                "PayPal_Activo" = $11
+            WHERE "ID_Vendedor" = $12
         `;
 
         try {
@@ -205,6 +218,12 @@ class User {
                 Estado_Tienda,
                 Tiempo_Arrepentimiento_Min,
                 Tiempo_Retraso_Comida_Min,
+                Numero_Tarjeta || null,
+                Nombre_Banco || null,
+                Nombre_Cuenta || null,
+                PayPal_Email || null,
+                Transferencia_Activo,
+                PayPal_Activo,
                 vendorId
             ]);
             return result.rowCount > 0;

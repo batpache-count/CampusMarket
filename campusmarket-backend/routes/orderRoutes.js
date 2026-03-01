@@ -3,6 +3,7 @@ const router = express.Router();
 const orderController = require('../controllers/orderController');
 const { protect, restrictTo } = require('../middlewares/authMiddleware');
 
+
 // ==========================================================
 // Rutas de Pedidos
 // ==========================================================
@@ -21,6 +22,7 @@ router.put('/:id/status', protect, restrictTo('Vendedor'), orderController.updat
 router.post('/:id/validate-qr', protect, restrictTo('Vendedor'), orderController.validateQR);
 router.post('/:id/rate', protect, orderController.rateOrder);
 router.post('/:id/confirm-receipt', protect, orderController.confirmReceipt);
+router.post('/:id/voucher', protect, orderController.upload.single('image'), orderController.uploadVoucher);
 router.post('/:id/report', protect, require('../controllers/reportController').createReport);
 router.post('/webhook/paypal', orderController.handlePayPalWebhook);
 

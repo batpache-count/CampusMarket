@@ -1,0 +1,73 @@
+.register-container {
+    max-width: 500px;
+    margin: 0 auto;
+
+    .input-group {
+        margin-bottom: 10px;
+
+        .send-btn-container {
+            text-align: right;
+            padding: 0 5px;
+
+            .send-code-btn {
+                font-size: 0.75rem;
+                font-weight: 600;
+                text-transform: none;
+                --color: var(--ion-color-secondary);
+                height: 30px;
+            }
+        }
+    }
+
+    .email-item {
+        --padding-end: 0;
+    }
+
+    .verification-wrapper {
+        margin: 20px 0;
+        animation: fadeIn 0.3s ease-in-out;
+
+        .code-item {
+            --background: rgba(var(--ion-color-success-rgb), 0.05);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(var(--ion-color-success-rgb), 0.3);
+            --padding-start: 16px;
+            --padding-end: 16px;
+
+            ion-label {
+                color: var(--ion-color-success);
+                font-weight: 600;
+                margin-bottom: 10px;
+            }
+
+            ion-input {
+                font-size: 1.5rem;
+                letter-spacing: 0.5rem;
+                font-weight: bold;
+                --padding-top: 15px;
+                --padding-bottom: 10px;
+                text-align: center;
+            }
+        }
+
+        .code-hint {
+            font-size: 0.75rem;
+            color: #666;
+            margin: 0 16px;
+            text-align: center;
+        }
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

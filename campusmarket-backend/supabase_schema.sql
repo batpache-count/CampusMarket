@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS public.usuario (
   "Email" TEXT NOT NULL UNIQUE,
   "Contrasena" TEXT NOT NULL,
   "Telefono" TEXT,
-  "Rol" TEXT DEFAULT 'Comprador' CHECK ("Rol" IN ('Comprador', 'Vendedor', 'Admin')),
+  "Rol" TEXT DEFAULT 'Comprador' CHECK ("Rol" IN ('Comprador', 'Vendedor', 'Administrador', 'ADMIN')),
   "Imagen_URL" TEXT DEFAULT 'default-user.png',
   "Fecha_Registro" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

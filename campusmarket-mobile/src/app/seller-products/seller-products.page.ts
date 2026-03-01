@@ -13,6 +13,8 @@ export class SellerProductsPage implements OnInit {
     apiUrl = environment.apiUrl;
     products: any[] = [];
     sellerName: string = '';
+    sellerDescription: string = '';
+    sellerBanner: string = '';
     loading = true;
 
     constructor(
@@ -31,12 +33,11 @@ export class SellerProductsPage implements OnInit {
         this.loading = true;
         this.productService.getProducts().subscribe({
             next: (data) => {
-                // Filter by seller name (assuming 'Nombre_Tienda' or similar field matches)
-                // Since we pass seller name, we filter by that.
-                // Ideally we should use ID, but user request implies Name linkage or "Products of ..."
-                // Let's check data structure in home or detail. 
-                // In detail: product.Nombre_Tienda
                 this.products = data.filter((p: any) => p.Nombre_Tienda === sellerName);
+                if (this.products.length > 0) {
+                    this.sellerDescription = this.products[0].Descripcion_Tienda;
+                    this.sellerBanner = this.products[0].Banner_URL;
+                }
                 this.loading = false;
             },
             error: (err) => {
@@ -44,5 +45,11 @@ export class SellerProductsPage implements OnInit {
                 this.loading = false;
             }
         });
+    }
+
+    getImageUrl(url: string | null | undefined, placeholder: string = 'assets/placeholder.svg'): string {
+        if (!url) return placeholder;
+        if (url.startsWith('http')) return url;
+        return `${this.apiUrl}/uploads/${url}`;
     }
 }

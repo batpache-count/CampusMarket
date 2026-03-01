@@ -5,19 +5,12 @@ const { protect, restrictTo } = require('../middlewares/authMiddleware');
 const multer = require('multer');
 const path = require('path');
 
-// --- Configuración de Multer (Subida de imágenes) ---
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/'); // Carpeta donde se guardan
-    },
-    filename: function (req, file, cb) {
-        // Nombre único: idUsuario + fecha + extensión
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, 'seller-' + uniqueSuffix + path.extname(file.originalname));
-    }
+// --- Configuración de Multer (Subida de imágenes a memoria) ---
+const storage = multer.memoryStorage();
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 } // Limite 5MB
 });
-
-const upload = multer({ storage: storage });
 
 // --- Rutas ---
 
@@ -64,6 +57,15 @@ router.post(
     restrictTo('Vendedor'),
     upload.single('photo'), // 'photo' es el nombre del campo que enviará Angular
     sellerController.uploadSellerPhoto
+);
+
+// POST /api/seller/upload-banner
+router.post(
+    '/upload-banner',
+    protect,
+    restrictTo('Vendedor'),
+    upload.single('banner'),
+    sellerController.uploadSellerBanner
 );
 
 // Ver mis productos

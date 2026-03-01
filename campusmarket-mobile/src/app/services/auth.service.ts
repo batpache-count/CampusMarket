@@ -36,13 +36,32 @@ export class AuthService {
         return this.http.post(`${this.apiUrl}/register`, userData);
     }
 
+    sendVerificationCode(email: string): Observable<any> {
+        return this.http.post(`${this.apiUrl}/send-verification-code`, { Email: email });
+    }
+
+    verifyCode(email: string, code: string): Observable<any> {
+        return this.http.post(`${this.apiUrl}/verify-code`, { Email: email, Codigo: code });
+    }
+
     updateProfile(userData: any): Observable<any> {
         const token = localStorage.getItem('token');
         const headers = new HttpHeaders({
             'Authorization': `Bearer ${token}`
             // No Content-Type for FormData, Angular sets it automatically with boundary
         });
-        return this.http.put(`${this.apiUrl}/profile`, userData, { headers });
+        return this.http.put(`${this.apiUrl}/profile`, userData, { headers }).pipe(
+            tap((response: any) => {
+                if (response.user) {
+                    this.refreshUser(response.user);
+                }
+            })
+        );
+    }
+
+    refreshUser(user: any) {
+        localStorage.setItem('user_data', JSON.stringify(user));
+        this.currentUserSubject.next(user);
     }
 
     logout() {

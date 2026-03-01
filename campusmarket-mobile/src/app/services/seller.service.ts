@@ -27,4 +27,16 @@ export class SellerService {
     getAdvancedStats(period: string = 'week'): Observable<any> {
         return this.http.get(`${this.apiUrl}/stats/advanced?period=${period}`, this.getHeaders());
     }
+
+    getProfile(): Observable<any> {
+        return this.http.get(`${this.apiUrl}/profile`, this.getHeaders());
+    }
+
+    uploadBanner(formData: FormData): Observable<any> {
+        return this.http.post(`${this.apiUrl}/upload-banner`, formData, this.getHeaders());
+    }
+
+    updateProfile(profileData: any): Observable<any> {
+        return this.http.put(`${this.apiUrl}/profile`, profileData, this.getHeaders());
+    }
 }

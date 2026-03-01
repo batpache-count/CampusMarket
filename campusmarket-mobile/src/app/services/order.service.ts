@@ -71,4 +71,17 @@ export class OrderService {
     authorizePayPalOrder(orderID: string): Observable<any> {
         return this.http.post<any>(`${this.apiUrl}/authorize-paypal`, { orderID }, this.getHeaders());
     }
+
+    uploadVoucher(orderId: string, imageBlob: Blob): Observable<any> {
+        const formData = new FormData();
+        formData.append('image', imageBlob, 'voucher.jpg');
+
+        // Use custom headers to avoid setting Content-Type manually (let browser handle boundary)
+        const token = localStorage.getItem('token');
+        const headers = new HttpHeaders({
+            'Authorization': `Bearer ${token}`
+        });
+
+        return this.http.post<any>(`${this.apiUrl}/${orderId}/voucher`, formData, { headers });
+    }
 }

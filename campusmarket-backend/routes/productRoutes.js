@@ -5,17 +5,12 @@ const { protect, restrictTo, optionalAuth } = require('../middlewares/authMiddle
 const multer = require('multer');
 const path = require('path');
 
-// --- CONFIGURACIÓN DE MULTER (Subida de imágenes) ---
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/');
-    },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, 'product-' + uniqueSuffix + path.extname(file.originalname));
-    }
+// --- CONFIGURACIÓN DE MULTER (Subida de imágenes a memoria) ---
+const storage = multer.memoryStorage();
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 } // Limite 5MB
 });
-const upload = multer({ storage: storage });
 
 // --- RUTAS PÚBLICAS ---
 

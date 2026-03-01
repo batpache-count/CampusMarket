@@ -1,6 +1,30 @@
 const User = require('../models/User');
 const Product = require('../models/Product');
 const { pool } = require('../config/database');
+const supabase = require('../config/supabaseClient');
+const path = require('path');
+
+/**
+ * Helper para subir a Supabase
+ */
+const uploadToSupabase = async (file, prefix = 'product') => {
+    const fileName = `${prefix}-${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
+
+    const { data, error } = await supabase.storage
+        .from('images')
+        .upload(fileName, file.buffer, {
+            contentType: file.mimetype,
+            upsert: false
+        });
+
+    if (error) throw error;
+
+    const { data: { publicUrl } } = supabase.storage
+        .from('images')
+        .getPublicUrl(fileName);
+
+    return publicUrl;
+};
 
 /**
  * 1. Obtener productos del vendedor (Para el Dashboard)
@@ -72,8 +96,27 @@ exports.updateSellerProfile = async (req, res) => {
             Nombre_Tienda: req.body.nombre_tienda || req.body.Nombre_Tienda,
             Descripcion_Tienda: req.body.descripcion_tienda || req.body.Descripcion_Tienda,
             Tiempo_Arrepentimiento_Min: req.body.tiempo_arrepentimiento_min,
-            Tiempo_Retraso_Comida_Min: req.body.tiempo_retraso_comida_min
+            Tiempo_Retraso_Comida_Min: req.body.tiempo_retraso_comida_min,
+            Numero_Tarjeta: req.body.numero_tarjeta || req.body.Numero_Tarjeta,
+            Nombre_Banco: req.body.nombre_banco || req.body.Nombre_Banco,
+            Nombre_Cuenta: req.body.nombre_cuenta || req.body.Nombre_Cuenta,
+            PayPal_Email: req.body.paypal_email || req.body.PayPal_Email,
+            Transferencia_Activo: req.body.transferencia_activo,
+            PayPal_Activo: req.body.paypal_activo
         };
+
+        // Validaciones de Métodos de Pago
+        if (req.body.transferencia_activo) {
+            if (!normalizedData.Nombre_Banco || !normalizedData.Nombre_Cuenta || !normalizedData.Numero_Tarjeta) {
+                return res.status(400).json({ message: 'Para activar transferencias, debes completar Banco, Titular y Número de Tarjeta/CLABE.' });
+            }
+        }
+
+        if (req.body.paypal_activo) {
+            if (!normalizedData.PayPal_Email) {
+                return res.status(400).json({ message: 'Para activar PayPal, debes ingresar tu correo electrónico vinculado.' });
+            }
+        }
 
         await User.updateSellerProfile(vendorProfile.ID_Vendedor, normalizedData);
         res.status(200).json({ message: 'Perfil actualizado.' });
@@ -93,12 +136,33 @@ exports.uploadSellerPhoto = async (req, res) => {
         const vendorProfile = await User.findVendorProfileByUserId(req.user.ID_Usuario);
         if (!vendorProfile) return res.status(404).json({ message: 'Vendedor no encontrado.' });
 
-        const photoUrl = req.file.filename;
+        const photoUrl = await uploadToSupabase(req.file, 'seller-photo');
         await pool.query('UPDATE vendedor SET "Foto_Perfil" = $1 WHERE "ID_Vendedor" = $2', [photoUrl, vendorProfile.ID_Vendedor]);
 
         res.status(200).json({ message: 'Foto actualizada', photoUrl });
     } catch (error) {
-        res.status(500).json({ message: 'Error al guardar foto.' });
+        console.error('Error en uploadSellerPhoto:', error);
+        res.status(500).json({ message: 'Error al subir o guardar foto.' });
+    }
+};
+
+/**
+ * 5b. Subir Banner de Tienda
+ */
+exports.uploadSellerBanner = async (req, res) => {
+    if (!req.file) return res.status(400).json({ message: 'No hay imagen.' });
+
+    try {
+        const vendorProfile = await User.findVendorProfileByUserId(req.user.ID_Usuario);
+        if (!vendorProfile) return res.status(404).json({ message: 'Vendedor no encontrado.' });
+
+        const bannerUrl = await uploadToSupabase(req.file, 'seller-banner');
+        await pool.query('UPDATE vendedor SET "Banner_URL" = $1 WHERE "ID_Vendedor" = $2', [bannerUrl, vendorProfile.ID_Vendedor]);
+
+        res.status(200).json({ message: 'Banner actualizado', bannerUrl });
+    } catch (error) {
+        console.error('Error en uploadSellerBanner:', error);
+        res.status(500).json({ message: 'Error al subir o guardar banner.' });
     }
 };
 
@@ -114,10 +178,19 @@ exports.getSellerProfile = async (req, res) => {
         }
 
         // Devolvemos los datos para pintar el Sidebar
+        // Devolvemos los datos para pintar el Sidebar y el Dashboard
         res.status(200).json({
             nombre_tienda: vendorProfile.Nombre_Tienda,
-            foto: vendorProfile.Foto_Perfil,
-            descripcion: vendorProfile.Descripcion_Tienda
+            foto: vendorProfile.Foto_Perfil, // Si el vendedor tiene una específica
+            imagen_url: req.user.Imagen_URL, // De la tabla usuario
+            banner_url: vendorProfile.Banner_URL,
+            descripcion: vendorProfile.Descripcion_Tienda,
+            numero_tarjeta: vendorProfile.Numero_Tarjeta,
+            nombre_banco: vendorProfile.Nombre_Banco,
+            nombre_cuenta: vendorProfile.Nombre_Cuenta,
+            paypal_email: vendorProfile.PayPal_Email,
+            transferencia_activo: vendorProfile.Transferencia_Activo,
+            paypal_activo: vendorProfile.PayPal_Activo
         });
 
     } catch (error) {

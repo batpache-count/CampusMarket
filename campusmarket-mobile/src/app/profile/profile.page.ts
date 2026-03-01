@@ -39,6 +39,17 @@ export class ProfilePage implements OnInit {
     this.loadOrders();
   }
 
+  handleRefresh(event: any) {
+    this.loadUser();
+    this.loadOrders();
+    // Since loadOrders is observable, we should ideally wait for it.
+    // However, since it sets loadingOrders=false at the end, we can just timeout or subscribe better.
+    // For simplicity and consistency with seller-dashboard:
+    setTimeout(() => {
+      event.target.complete();
+    }, 1000);
+  }
+
   loadUser() {
     const userData = localStorage.getItem('user_data');
     if (userData) {
@@ -202,8 +213,7 @@ export class ProfilePage implements OnInit {
   }
 
   updateLocalUser(newUserData: any) {
-    this.user = newUserData;
-    localStorage.setItem('user_data', JSON.stringify(newUserData));
+    this.authService.refreshUser(newUserData);
   }
 
   async presentToast(message: string) {
@@ -222,5 +232,11 @@ export class ProfilePage implements OnInit {
 
   closeImageModal() {
     this.isModalOpen = false;
+  }
+
+  getImageUrl(url: string | null | undefined): string {
+    if (!url) return 'assets/placeholder.svg';
+    if (url.startsWith('http')) return url;
+    return `${this.apiUrl}/uploads/${url}`;
   }
 }

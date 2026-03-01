@@ -1,11 +1,35 @@
 const Product = require('../models/Product');
 const User = require('../models/User');
 const { pool } = require('../config/database');
+const supabase = require('../config/supabaseClient');
+const path = require('path');
 
 // Helper para obtener ID Vendedor
 const getVendorId = async (userId) => {
     const profile = await User.findVendorProfileByUserId(userId);
     return profile ? profile.ID_Vendedor : null;
+};
+
+/**
+ * Helper para subir a Supabase
+ */
+const uploadToSupabase = async (file, prefix = 'product') => {
+    const fileName = `${prefix}-${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
+
+    const { data, error } = await supabase.storage
+        .from('images')
+        .upload(fileName, file.buffer, {
+            contentType: file.mimetype,
+            upsert: false
+        });
+
+    if (error) throw error;
+
+    const { data: { publicUrl } } = supabase.storage
+        .from('images')
+        .getPublicUrl(fileName);
+
+    return publicUrl;
 };
 
 /**
@@ -16,7 +40,8 @@ exports.createProduct = async (req, res) => {
         if (!req.file) {
             return res.status(400).json({ message: 'La imagen es obligatoria.' });
         }
-        const Imagen_URL = req.file.filename;
+
+        const Imagen_URL = await uploadToSupabase(req.file);
 
         const Nombre = req.body.name || req.body.Nombre;
         const Descripcion = req.body.description || req.body.Descripcion;
@@ -45,7 +70,7 @@ exports.createProduct = async (req, res) => {
 
     } catch (error) {
         console.error('Error creando producto:', error);
-        res.status(500).json({ message: 'Error al guardar en BD.' });
+        res.status(500).json({ message: 'Error al subir imagen o guardar en BD.' });
     }
 };
 
@@ -71,7 +96,11 @@ exports.getPublicCatalog = async (req, res) => {
                 p.*, 
                 c."Nombre" AS "Categoria_Nombre",
                 v."Nombre_Tienda",
+                v."Descripcion_Tienda",
+                v."Banner_URL",
                 v."ID_Usuario" AS "ID_Usuario_Vendedor",
+                v."Transferencia_Activo",
+                v."PayPal_Activo",
                 COALESCE(stats."Promedio", 0) AS "Promedio_Calificacion",
                 COALESCE(stats."Votos", 0) AS "Total_Votos"
             FROM producto p
@@ -140,9 +169,10 @@ exports.updateProduct = async (req, res) => {
         if (updateData.hasOwnProperty('Activo')) { setClause.push(`"Activo" = $${paramIndex++}`); params.push(updateData.Activo); }
 
         if (req.file) {
+            const Imagen_URL = await uploadToSupabase(req.file);
             setClause.push(`"Imagen_URL" = $${paramIndex++}`);
-            params.push(req.file.filename);
-            updateData.Imagen_URL = req.file.filename; // Para lógica de stock abajo si se necesitara
+            params.push(Imagen_URL);
+            updateData.Imagen_URL = Imagen_URL;
         }
 
         if (setClause.length > 0) {
@@ -224,7 +254,14 @@ exports.getProductById = async (req, res) => {
                 p.*,
                 c."Nombre" AS "Categoria_Nombre",
                 v."Nombre_Tienda",
+                v."Descripcion_Tienda",
+                v."Banner_URL",
                 v."ID_Usuario" AS "ID_Usuario_Vendedor",
+                v."Numero_Tarjeta",
+                v."Nombre_Banco",
+                v."Nombre_Cuenta",
+                v."Transferencia_Activo",
+                v."PayPal_Activo",
                 COALESCE(stats."Promedio", 0) AS "Promedio_Calificacion",
                 COALESCE(stats."Votos", 0) AS "Total_Votos"
             FROM producto p

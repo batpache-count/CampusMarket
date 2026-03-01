@@ -139,16 +139,20 @@ export class CartPage implements OnInit {
   checkout() {
     if (this.cartItems.length === 0) return;
 
-    // 1. Validación de configuración básica
-    const unconfiguredItems = this.cartItems.filter(item =>
-      !item.selectedPaymentMethod ||
-      !item.selectedLocation ||
-      !item.selectedDay ||
-      !item.selectedTime
+    // 1. Validación de puntos de entrega (Requerido por usuario)
+    const itemsWithoutDelivery = this.cartItems.filter(item =>
+      !item.selectedLocation || !item.selectedDay || !item.selectedTime
     );
 
-    if (unconfiguredItems.length > 0) {
-      this.presentToast(`Por favor configura la entrega y pago para ${unconfiguredItems.length} producto(s).`, 'warning');
+    if (itemsWithoutDelivery.length > 0) {
+      this.presentToast('Configura los puntos de entrega de los pedidos', 'warning');
+      return;
+    }
+
+    // 2. Validación de método de pago
+    const itemsWithoutPayment = this.cartItems.filter(item => !item.selectedPaymentMethod);
+    if (itemsWithoutPayment.length > 0) {
+      this.presentToast(`Por favor configura el pago para ${itemsWithoutPayment.length} producto(s).`, 'warning');
       return;
     }
 
@@ -217,19 +221,21 @@ export class CartPage implements OnInit {
       orders[key].total += Number(item.price) * Number(item.quantity);
     });
 
-    const cashOrders = Object.values(orders).filter(o => o.Metodo_Pago?.toLowerCase() === 'efectivo');
+    const manualOrders = Object.values(orders).filter(o =>
+      ['efectivo', 'transferencia'].includes(o.Metodo_Pago?.toLowerCase())
+    );
     const payPalOrders = Object.values(orders).filter(o => o.Metodo_Pago?.toLowerCase() === 'paypal');
 
-    // 1. Process Cash Orders
-    if (cashOrders.length > 0) {
-      const cashObservables = cashOrders.map(order => this.orderService.createOrder(order));
-      forkJoin(cashObservables).subscribe({
+    // 1. Process Manual Orders (Cash and Transfer)
+    if (manualOrders.length > 0) {
+      const manualObservables = manualOrders.map(order => this.orderService.createOrder(order));
+      forkJoin(manualObservables).subscribe({
         next: (results) => {
-          console.log('Cash Orders Created:', results);
+          console.log('Manual Orders Created:', results);
           if (payPalOrders.length === 0) {
             this.finalizeCheckout(loading);
           } else {
-            this.presentToast('Pedidos en efectivo registrados. Procede con el pago PayPal.', 'success');
+            this.presentToast('Pedidos (Efectivo/Transferencia) registrados. Procede con el pago PayPal.', 'success');
           }
         },
         error: (err) => {
@@ -246,7 +252,7 @@ export class CartPage implements OnInit {
       this.showPayPalButton = true;
       await loading.dismiss();
       setTimeout(() => this.loadPayPalSDK(), 100);
-    } else if (cashOrders.length === 0) {
+    } else if (manualOrders.length === 0) {
       await loading.dismiss();
     }
   }
@@ -427,5 +433,11 @@ export class CartPage implements OnInit {
   async presentToast(msg: string, color: string = 'primary') {
     const toast = await this.toastController.create({ message: msg, duration: 2000, color: color });
     toast.present();
+  }
+
+  getImageUrl(url: string | null | undefined): string {
+    if (!url) return 'assets/placeholder.svg';
+    if (url.startsWith('http')) return url;
+    return `${this.apiUrl}/uploads/${url}`;
   }
 }

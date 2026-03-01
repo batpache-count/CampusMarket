@@ -28,9 +28,16 @@
                 <ion-label>Efectivo</ion-label>
                 <ion-radio slot="start" value="Efectivo"></ion-radio>
             </ion-item>
-            <ion-item>
+            <ion-item *ngIf="item?.PayPal_Activo">
                 <ion-label>PayPal</ion-label>
                 <ion-radio slot="start" value="PayPal"></ion-radio>
+            </ion-item>
+            <ion-item *ngIf="item?.Transferencia_Activo">
+                <ion-label>
+                    <h2>Transferencia</h2>
+                    <p>{{ item.Nombre_Banco }}</p>
+                </ion-label>
+                <ion-radio slot="start" value="Transferencia"></ion-radio>
             </ion-item>
         </ion-radio-group>
     </ion-list>

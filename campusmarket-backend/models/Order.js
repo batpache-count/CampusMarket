@@ -1,4 +1,6 @@
 const { pool } = require('../config/database');
+const crypto = require('crypto');
+const Notification = require('./Notification');
 
 /**
  * Modelo para gestionar el CRUD de Pedidos (RF-C-004, RF-V-007, RF-V-008)
@@ -215,9 +217,9 @@ class Order {
 
             // 2. Lógica de Confirmación Especial para Efectivo
             if (orderInfo.Metodo_Pago === 'Efectivo' && newStatus === 'Entregado') {
-                if (actor === 'Vendedor') {
+                if (actor.includes('Vendedor')) {
                     confVendedor = true;
-                } else if (actor === 'Comprador') {
+                } else if (actor.includes('Comprador')) {
                     confComprador = true;
                 }
 
@@ -254,7 +256,6 @@ class Order {
 
             // 4. Notificaciones de Confirmación
             if (orderInfo.Metodo_Pago === 'Efectivo') {
-                const Notification = require('./Notification');
                 if (actor === 'Vendedor' && confVendedor && !orderInfo.Confirmacion_Vendedor) {
                     await Notification.create({
                         ID_Usuario: orderInfo.ID_Comprador,
@@ -296,7 +297,7 @@ class Order {
             }
 
             await client.query('COMMIT');
-            return true;
+            return { success: true, finalStatus, oldStatus };
 
         } catch (error) {
             await client.query('ROLLBACK');
@@ -340,6 +341,9 @@ class Order {
                 -- Seller Info
                 v."Nombre_Tienda",
                 v."PayPal_Email" AS "PayPal_Email_Vendedor",
+                v."Nombre_Banco" AS "Nombre_Banco_Vendedor",
+                v."Nombre_Cuenta" AS "Nombre_Cuenta_Vendedor",
+                v."Numero_Tarjeta" AS "Numero_Tarjeta_Vendedor",
                 uv."ID_Usuario" AS "ID_Vendedor_User",
                 uv."Nombre" AS "Nombre_Vendedor",
                 uv."Apellido_Paterno" AS "Apellido_Vendedor",
@@ -397,6 +401,26 @@ class Order {
             throw error;
         } finally {
             client.release();
+        }
+    }
+
+    /**
+     * Actualiza el comprobante de pago de un pedido.
+     */
+    static async updateVoucher(orderId, voucherUrl) {
+        const query = `
+            UPDATE pedido
+            SET "Comprobante_Pago_URL" = $1,
+                "Estado_Pedido" = 'Pagado',
+                "Fecha_Actualizacion" = CURRENT_TIMESTAMP
+            WHERE "ID_Pedido" = $2
+        `;
+        try {
+            const result = await pool.query(query, [voucherUrl, orderId]);
+            return result.rowCount > 0;
+        } catch (error) {
+            console.error('Error updating voucher: ', error);
+            throw error;
         }
     }
 

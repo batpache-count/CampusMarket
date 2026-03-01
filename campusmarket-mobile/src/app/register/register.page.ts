@@ -16,8 +16,14 @@ export class RegisterPage implements OnInit {
     Apellido_Materno: '',
     Email: '',
     Contrasena: '',
-    Rol: 'Comprador' // Default role
+    Rol: 'Comprador', // Default role
+    verificationCode: ''
   };
+
+  codeSent = false;
+  canRegister = false;
+  countdown = 0;
+  timer: any;
 
   constructor(
     private authService: AuthService,
@@ -31,8 +37,8 @@ export class RegisterPage implements OnInit {
   }
 
   async onRegister() {
-    if (!this.userData.Nombre || !this.userData.Apellido_Paterno || !this.userData.Email || !this.userData.Contrasena) {
-      this.showAlert('Error', 'Por favor completa los campos obligatorios');
+    if (!this.userData.Nombre || !this.userData.Apellido_Paterno || !this.userData.Email || !this.userData.Contrasena || !this.userData.verificationCode) {
+      this.showAlert('Error', 'Por favor completa los campos obligatorios y verifica tu correo');
       return;
     }
 
@@ -74,5 +80,41 @@ export class RegisterPage implements OnInit {
       color: 'success'
     });
     await toast.present();
+  }
+
+  async sendCode() {
+    if (!this.userData.Email) {
+      this.showAlert('Atención', 'Ingresa tu correo primero');
+      return;
+    }
+
+    const loading = await this.loadingController.create({
+      message: 'Enviando código...',
+    });
+    await loading.present();
+
+    this.authService.sendVerificationCode(this.userData.Email).subscribe({
+      next: async (res) => {
+        await loading.dismiss();
+        this.codeSent = true;
+        this.showToast('Código enviado a su correo');
+        this.startCountdown();
+      },
+      error: async (err) => {
+        await loading.dismiss();
+        console.error('Send code error', err);
+        const msg = err.error?.message || 'Error al enviar el código. Intenta de nuevo.';
+        this.showAlert('Error', msg);
+      }
+    });
+  }
+
+  startCountdown() {
+    this.countdown = 60;
+    if (this.timer) clearInterval(this.timer);
+    this.timer = setInterval(() => {
+      this.countdown--;
+      if (this.countdown <= 0) clearInterval(this.timer);
+    }, 1000);
   }
 }

@@ -2,6 +2,31 @@ const User = require('../models/User');
 const { pool } = require('../config/database');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const supabase = require('../config/supabaseClient');
+const path = require('path');
+const { sendVerificationEmail } = require('../services/emailService');
+
+/**
+ * Helper para subir a Supabase
+ */
+const uploadToSupabase = async (file, prefix = 'product') => {
+    const fileName = `${prefix}-${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
+
+    const { data, error } = await supabase.storage
+        .from('images')
+        .upload(fileName, file.buffer, {
+            contentType: file.mimetype,
+            upsert: false
+        });
+
+    if (error) throw error;
+
+    const { data: { publicUrl } } = supabase.storage
+        .from('images')
+        .getPublicUrl(fileName);
+
+    return publicUrl;
+};
 
 /**
  * Genera un token JWT para el usuario.
@@ -32,24 +57,49 @@ const generateToken = (user, vendorProfile) => {
  */
 exports.register = async (req, res) => {
     console.log('📝 [Register] Request Body:', JSON.stringify(req.body, null, 2));
-    const { Nombre, Apellido_Paterno, Apellido_Materno, Email, Contrasena, Telefono } = req.body;
+    const { Nombre, Apellido_Paterno, Apellido_Materno, Email, Contrasena, Telefono, verificationCode } = req.body;
 
     // Validación básica
-    if (!Email || !Contrasena || !Nombre || !Apellido_Paterno) {
-        return res.status(400).json({ message: 'Faltan campos obligatorios (Nombre, Apellidos, Email, Contraseña).' });
+    if (!Email || !Contrasena || !Nombre || !Apellido_Paterno || !verificationCode) {
+        return res.status(400).json({ message: 'Faltan campos obligatorios (Nombre, Apellidos, Email, Contraseña, Código de Verificación).' });
     }
 
     try {
-        // 1. Verificar unicidad del correo (RF-C-001)
+        console.log(`🔍 [Register] Verificando código para ${Email}: ${verificationCode}`);
+
+        // 1. Verificar el código de verificación (Case insensitive para email)
+        const verifyQuery = `
+            SELECT *, CURRENT_TIMESTAMP as db_now FROM email_verification 
+            WHERE LOWER("Email") = LOWER($1) AND "Codigo" = $2
+        `;
+        const { rows: verifyRows } = await pool.query(verifyQuery, [Email, verificationCode]);
+
+        if (verifyRows.length === 0) {
+            console.log('❌ [Register] Código no encontrado en DB');
+            return res.status(400).json({ message: 'Código de verificación inválido o expirado.' });
+        }
+
+        const record = verifyRows[0];
+        console.log(`📊 [Register] DB Record: Code=${record.Codigo}, Expires=${record.Fecha_Expiracion}, DB Now=${record.db_now}`);
+
+        if (new Date(record.Fecha_Expiracion) < new Date(record.db_now)) {
+            console.log('❌ [Register] Código expirado');
+            return res.status(400).json({ message: 'Código de verificación inválido o expirado.' });
+        }
+
+        // 2. Verificar unicidad del correo (RF-C-001)
         const existingUser = await User.findByEmail(Email);
         if (existingUser) {
             return res.status(409).json({ message: 'El correo electrónico ya está registrado.' });
         }
 
-        // 2. Crear el usuario (Rol por defecto: Comprador)
+        // 3. Crear el usuario (Rol por defecto: Comprador)
         const newUser = await User.create(req.body);
 
-        // 3. Si el rol es Vendedor, crear automáticamente el perfil de tienda
+        // 4. Limpiar el código de verificación usado
+        await pool.query('DELETE FROM email_verification WHERE "Email" = $1', [Email]);
+
+        // 5. Si el rol es Vendedor, crear automáticamente el perfil de tienda
         if (req.body.Rol === 'Vendedor') {
             await User.becomeSeller(newUser.id, {
                 Nombre_Tienda: `${Nombre} ${Apellido_Paterno}'s Store`,
@@ -57,7 +107,7 @@ exports.register = async (req, res) => {
             });
         }
 
-        // 3. Respuesta exitosa
+        // 6. Respuesta exitosa
         res.status(201).json({
             message: 'Registro exitoso. Por favor, inicia sesión.',
             userId: newUser.id
@@ -167,8 +217,9 @@ exports.updateProfile = async (req, res) => {
 
         // Manejo de Imagen
         if (req.file) {
+            const Imagen_URL = await uploadToSupabase(req.file, 'user-profile');
             setClauses.push(`"Imagen_URL" = $${paramIndex++}`);
-            params.push(req.file.filename);
+            params.push(Imagen_URL);
         } else if (DeleteImage === 'true') {
             setClauses.push(`"Imagen_URL" = NULL`);
         }
@@ -249,6 +300,83 @@ exports.changePassword = async (req, res) => {
 
     } catch (error) {
         console.error('Error cambiando contraseña:', error);
+        res.status(500).json({ message: 'Error interno del servidor.' });
+    }
+};
+/**
+ * Genera y envía un código de verificación por correo
+ */
+exports.sendVerificationCode = async (req, res) => {
+    const { Email } = req.body;
+
+    if (!Email) {
+        return res.status(400).json({ message: 'Se requiere un correo electrónico.' });
+    }
+
+    try {
+        console.log(`📡 [SendCode] Generando código para: ${Email}`);
+
+        // 1. Verificar si el usuario ya existe (Case insensitive)
+        const queryCheck = 'SELECT 1 FROM usuario WHERE LOWER("Email") = LOWER($1)';
+        const { rows: userExists } = await pool.query(queryCheck, [Email]);
+
+        if (userExists.length > 0) {
+            return res.status(409).json({ message: 'Este correo ya está registrado.' });
+        }
+
+        // 2. Generar código de 6 dígitos
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos
+
+        // 3. Guardar en la base de datos (Upsert) - Guardamos en minúsculas para consistencia
+        const upsertQuery = `
+            INSERT INTO email_verification ("Email", "Codigo", "Fecha_Expiracion")
+            VALUES (LOWER($1), $2, $3)
+            ON CONFLICT ("Email") DO UPDATE 
+            SET "Codigo" = $2, "Fecha_Expiracion" = $3
+        `;
+        await pool.query(upsertQuery, [Email, code, expiresAt]);
+        console.log(`💾 [SendCode] Código ${code} guardado para ${Email.toLowerCase()}`);
+
+        // 4. Enviar correo
+        const sent = await sendVerificationEmail(Email, code);
+
+        if (sent) {
+            res.status(200).json({ message: 'Código enviado con éxito.' });
+        } else {
+            res.status(500).json({ message: 'Error al enviar el correo, pero el código fue generado.', devMode: true });
+        }
+
+    } catch (error) {
+        console.error('Error enviando código:', error);
+        res.status(500).json({ message: 'Error interno del servidor.' });
+    }
+};
+
+/**
+ * Verifica un código manualmente (opcional, el registro ya lo hace)
+ */
+exports.verifyCode = async (req, res) => {
+    const { Email, Codigo } = req.body;
+
+    if (!Email || !Codigo) {
+        return res.status(400).json({ message: 'Se requiere Email y Código.' });
+    }
+
+    try {
+        const query = `
+            SELECT * FROM email_verification 
+            WHERE "Email" = $1 AND "Codigo" = $2 AND "Fecha_Expiracion" > CURRENT_TIMESTAMP
+        `;
+        const { rows } = await pool.query(query, [Email, Codigo]);
+
+        if (rows.length > 0) {
+            res.status(200).json({ message: 'Código válido.', valid: true });
+        } else {
+            res.status(400).json({ message: 'Código inválido o expirado.', valid: false });
+        }
+    } catch (error) {
+        console.error('Error verificando código:', error);
         res.status(500).json({ message: 'Error interno del servidor.' });
     }
 };

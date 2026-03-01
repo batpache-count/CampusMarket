@@ -27,51 +27,59 @@
 
     <!-- NUEVO SELECTOR DE ESTADO (Para Vendedores) -->
     <div class="status-redo-card" *ngIf="isSeller">
-      <div class="card-header">ACTUALIZAR ESTADO</div>
+      <div class="card-header">ESTADO DEL PEDIDO</div>
 
-      <div class="current-status-display" [class]="localStatus">
+      <div class="current-status-display" [class]="localStatus"
+        [class.is-finalized]="order.Estado_Pedido === 'Entregado'">
         <ion-icon [name]="getStatusIcon(localStatus)"></ion-icon>
         <span>{{ localStatus }}</span>
       </div>
 
-      <div class="status-options-grid">
-        <div class="status-chip" [class.active]="localStatus === 'Pendiente'" (click)="localStatus = 'Pendiente'">
-          <ion-icon name="time-outline"></ion-icon>
-          <span>Pendiente</span>
+      <!-- Only show options if NOT finalized -->
+      <ng-container *ngIf="order.Estado_Pedido !== 'Entregado'">
+        <div class="status-options-grid">
+          <div class="status-chip" [class.active]="localStatus === 'Pendiente'" (click)="localStatus = 'Pendiente'">
+            <ion-icon name="time-outline"></ion-icon>
+            <span>Pendiente</span>
+          </div>
+          <div class="status-chip" [class.active]="localStatus === 'Autorizado'" (click)="localStatus = 'Autorizado'"
+            *ngIf="order.Metodo_Pago?.toLowerCase() === 'paypal'">
+            <ion-icon name="shield-checkmark-outline"></ion-icon>
+            <span>Retenido (Escrow)</span>
+          </div>
+          <div class="status-chip" [class.active]="localStatus === 'En preparacion'"
+            (click)="localStatus = 'En preparacion'">
+            <ion-icon name="restaurant-outline"></ion-icon>
+            <span>Preparando</span>
+          </div>
+          <div class="status-chip" [class.active]="localStatus === 'Listo'" (click)="localStatus = 'Listo'">
+            <ion-icon name="gift-outline"></ion-icon>
+            <span>Listo</span>
+          </div>
+          <div class="status-chip" [class.active]="localStatus === 'En camino'" (click)="localStatus = 'En camino'">
+            <ion-icon name="bicycle-outline"></ion-icon>
+            <span>En camino</span>
+          </div>
+          <div class="status-chip" [class.active]="localStatus === 'Entregado'" (click)="localStatus = 'Entregado'"
+            *ngIf="showEntregadoOption">
+            <ion-icon name="checkmark-done-outline"></ion-icon>
+            <span>Entregado</span>
+          </div>
+          <div class="status-chip" [class.active]="localStatus === 'Cancelado'" (click)="localStatus = 'Cancelado'">
+            <ion-icon name="close-circle-outline"></ion-icon>
+            <span>Cancelado</span>
+          </div>
         </div>
-        <div class="status-chip" [class.active]="localStatus === 'Autorizado'" (click)="localStatus = 'Autorizado'"
-          *ngIf="order.Metodo_Pago?.toLowerCase() === 'paypal'">
-          <ion-icon name="shield-checkmark-outline"></ion-icon>
-          <span>Retenido (Escrow)</span>
-        </div>
-        <div class="status-chip" [class.active]="localStatus === 'En preparacion'"
-          (click)="localStatus = 'En preparacion'">
-          <ion-icon name="restaurant-outline"></ion-icon>
-          <span>Preparando</span>
-        </div>
-        <div class="status-chip" [class.active]="localStatus === 'Listo'" (click)="localStatus = 'Listo'">
-          <ion-icon name="gift-outline"></ion-icon>
-          <span>Listo</span>
-        </div>
-        <div class="status-chip" [class.active]="localStatus === 'En camino'" (click)="localStatus = 'En camino'">
-          <ion-icon name="bicycle-outline"></ion-icon>
-          <span>En camino</span>
-        </div>
-        <div class="status-chip" [class.active]="localStatus === 'Entregado'" (click)="localStatus = 'Entregado'"
-          *ngIf="showEntregadoOption">
-          <ion-icon name="checkmark-done-outline"></ion-icon>
-          <span>Entregado</span>
-        </div>
-        <div class="status-chip" [class.active]="localStatus === 'Cancelado'" (click)="localStatus = 'Cancelado'">
-          <ion-icon name="close-circle-outline"></ion-icon>
-          <span>Cancelado</span>
-        </div>
-      </div>
 
-      <ion-button expand="block" (click)="saveChanges()" class="save-changes-btn"
-        [disabled]="localStatus === order.Estado_Pedido">
-        Actualizar Pedido
-      </ion-button>
+        <ion-button expand="block" (click)="saveChanges()" class="save-changes-btn"
+          [disabled]="localStatus === order.Estado_Pedido">
+          Actualizar Pedido
+        </ion-button>
+      </ng-container>
+
+      <div *ngIf="order.Estado_Pedido === 'Entregado'" class="finalized-msg">
+        Este pedido ha sido finalizado y ya no puede modificarse.
+      </div>
     </div>
 
     <!-- PRODUCT CARD -->
@@ -80,7 +88,7 @@
 
       <div class="product-wrapper">
         <div class="img-box">
-          <img [src]="getProductImage(currentProduct?.Imagen_URL)" onerror="this.src='assets/banner-placeholder.jpg'">
+          <img [src]="getProductImage(currentProduct?.Imagen_URL)" onerror="this.src='assets/placeholder.svg'">
         </div>
 
         <div class="info-box">
@@ -111,9 +119,8 @@
 
       <div class="client-row">
         <div class="avatar">
-          [src]="(isSeller ? order.Foto_Comprador : order.Foto_Vendedor) ? getProductImage(isSeller ?
-          order.Foto_Comprador : order.Foto_Vendedor) : 'https://ionicframework.com/docs/img/demos/avatar.svg'"
-          onerror="this.src='https://ionicframework.com/docs/img/demos/avatar.svg'">
+          <img [src]="getImageUrl(isSeller ? order.Foto_Comprador : order.Foto_Vendedor)"
+            onerror="this.src='https://ionicframework.com/docs/img/demos/avatar.svg'">
         </div>
         <div class="client-details">
           <div class="client-name">
@@ -139,16 +146,63 @@
         <span>{{ order.Fecha_Creacion | date:'medium' }}</span>
       </div>
 
-      <div class="detail-line">
-        <ion-icon [name]="order.Metodo_Pago?.toLowerCase() === 'paypal' ? 'card-outline' : 'cash-outline'"
-          style="margin-right:8px; color:#666;"></ion-icon>
+      <div class="detail-line" [class.transfer-method]="order.Metodo_Pago?.toLowerCase() === 'transferencia'">
+        <ion-icon
+          [name]="order.Metodo_Pago?.toLowerCase() === 'paypal' ? 'card-outline' : (order.Metodo_Pago?.toLowerCase() === 'transferencia' ? 'swap-horizontal-outline' : 'cash-outline')"
+          style="margin-right:8px;"></ion-icon>
         <span>Pago: <strong>{{ order.Metodo_Pago }}</strong></span>
+      </div>
+
+      <!-- BANK TRANSFER DETAILS -->
+      <div class="bank-details-box" *ngIf="order.Metodo_Pago?.toLowerCase() === 'transferencia'">
+        <div class="divider"></div>
+        <p class="bank-title">DATOS DE TRANSFERENCIA</p>
+        <div class="bank-row">
+          <span class="bank-label">Banco:</span>
+          <span class="bank-value">{{ order.Nombre_Banco_Vendedor }}</span>
+        </div>
+        <div class="bank-row">
+          <span class="bank-label">Titular:</span>
+          <span class="bank-value">{{ order.Nombre_Cuenta_Vendedor }}</span>
+        </div>
+        <div class="bank-row">
+          <span class="bank-label">Cuenta/CLABE:</span>
+          <span class="bank-value">{{ order.Numero_Tarjeta_Vendedor }}</span>
+          <ion-button fill="clear" size="small" (click)="copyToCode(order.Numero_Tarjeta_Vendedor)"
+            style="margin-top: -10px;">
+            <ion-icon name="copy-outline" slot="icon-only" size="small"></ion-icon>
+          </ion-button>
+        </div>
+        <div class="divider"></div>
       </div>
 
       <!-- Delivery Notes -->
       <div class="notes-box" *ngIf="orderNotes">
         <strong>Nota de Entrega:</strong><br>
         {{ orderNotes }}
+      </div>
+
+      <!-- TRANSFER VOUCHER DISPLAY/UPLOAD -->
+      <div class="voucher-section" *ngIf="order.Metodo_Pago?.toLowerCase() === 'transferencia'">
+
+        <!-- Uploaded Voucher -->
+        <div class="voucher-display" *ngIf="order.Comprobante_Pago_URL">
+          <p class="voucher-label">COMPROBANTE DE PAGO</p>
+          <div class="voucher-img-container" (click)="copyToCode(order.Comprobante_Pago_URL)">
+            <img [src]="getImageUrl(order.Comprobante_Pago_URL)" onerror="this.src='assets/placeholder.svg'">
+          </div>
+          <p class="voucher-hint" *ngIf="isSeller">Verifica que el depósito sea correcto antes de entregar.</p>
+        </div>
+
+        <!-- Upload Button (Buyer only, if not uploaded or rejected) -->
+        <div class="buyer-voucher-upload"
+          *ngIf="!isSeller && !order.Comprobante_Pago_URL && order.Estado_Pedido === 'Pendiente'">
+          <ion-button expand="block" color="secondary" (click)="selectVoucher()" class="upload-btn">
+            <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
+            Adjuntar Evidencia de Pago
+          </ion-button>
+          <p class="btn-hint">Sube una captura de tu transferencia para proceder.</p>
+        </div>
       </div>
 
       <!-- WAITING STATUS (DUAL CONFIRMATION) -->
