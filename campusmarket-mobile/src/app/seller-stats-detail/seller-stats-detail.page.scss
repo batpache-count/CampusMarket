@@ -47,7 +47,7 @@
     ion-card-title {
         font-size: 1.1rem;
         font-weight: 600;
-        color: #ffffff;
+        color: var(--ion-text-color);
     }
 }
 
@@ -72,6 +72,6 @@ h2,
 p,
 ion-label {
     &:not(.highlight-item *) {
-        color: #ffffff;
+        color: var(--ion-text-color);
     }
 }

@@ -79,6 +79,7 @@ export class SellerStatsDetailPage implements OnInit {
           data.bestDay.Dia = this.dayMap[englishDay] || englishDay;
         }
         this.stats = data;
+        this.updateChartColors();
         this.prepareCharts();
         this.loading = false;
       },
@@ -120,6 +121,26 @@ export class SellerStatsDetailPage implements OnInit {
         }
       ]
     };
+  }
+
+  updateChartColors() {
+    const isDark = document.body.classList.contains('dark');
+    const color = isDark ? '#ffffff' : '#666666';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
+    if (this.lineChartOptions && this.lineChartOptions.scales) {
+      if (this.lineChartOptions.scales['y']) {
+        this.lineChartOptions.scales['y'].grid = { color: gridColor };
+        this.lineChartOptions.scales['y'].ticks = { color: color };
+      }
+      if (this.lineChartOptions.scales['x']) {
+        this.lineChartOptions.scales['x'].ticks = { color: color };
+      }
+    }
+
+    if (this.pieChartOptions && this.pieChartOptions.plugins && this.pieChartOptions.plugins.legend) {
+      this.pieChartOptions.plugins.legend.labels = { color: color };
+    }
   }
 
   segmentChanged(ev: any) {
