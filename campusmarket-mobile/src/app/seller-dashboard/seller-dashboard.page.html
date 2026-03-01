@@ -148,9 +148,13 @@
                 onerror="this.src='assets/placeholder.svg'" />
             </ion-thumbnail>
             <ion-label>
-              <h2>{{ product.Nombre }}</h2>
-              <p>{{ product.Precio | currency }} | Stock: {{ product.Stock }}</p>
-              <ion-badge [color]="product.Activo ? 'success' : 'medium'">
+              <h2>
+                {{ product.Nombre }}
+                <ion-icon name="warning" color="warning" *ngIf="product.Stock > 0 && product.Stock < 5"
+                  style="vertical-align: middle; margin-left: 4px;"></ion-icon>
+              </h2>
+              <p style="color: white !important;">{{ product.Precio | currency }} | Stock: {{ product.Stock }}</p>
+              <ion-badge [color]="product.Activo ? 'success' : 'medium'" class="ion-margin-top">
                 {{ product.Activo ? 'Público' : 'Oculto' }}
               </ion-badge>
             </ion-label>

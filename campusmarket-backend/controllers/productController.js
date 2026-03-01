@@ -209,6 +209,12 @@ exports.updateProduct = async (req, res) => {
             }
         }
 
+        // Lógica de Auto-ocultar si stock es cero
+        if (newStock <= 0) {
+            await pool.query('UPDATE producto SET "Activo" = FALSE WHERE "ID_Producto" = $1', [productId]);
+            console.log(`[ProductUpdate] Producto ${productId} autodesactivado por stock cero.`);
+        }
+
         res.status(200).json({ message: 'Producto actualizado.' });
     } catch (error) {
         console.error('Error al actualizar producto:', error);

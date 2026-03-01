@@ -57,9 +57,9 @@ export class NotificationsPage implements OnInit {
       this.notificationService.markAsRead(note.ID_Notificacion).subscribe();
     }
 
-    if (note.Tipo === 'STOCK_ALERT' && note.ID_Referencia) {
+    if ((note.Tipo === 'STOCK_ALERT' || note.Tipo === 'STOCK_BAJO') && note.ID_Referencia) {
       // Llevar a detalles del producto para que el vendedor decida si añadir más stock
-      this.router.navigate(['/product-detail', note.ID_Referencia]);
+      this.router.navigate(['/product-editor', note.ID_Referencia]);
     } else if (note.Tipo === 'NUEVA_VENTA' || note.Tipo === 'RECIBO_CONFIRMADO') {
       // Notificaciones para el vendedor
       this.router.navigate(['/orders/order-detail', note.ID_Referencia], { queryParams: { role: 'seller' } });

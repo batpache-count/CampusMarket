@@ -14,6 +14,15 @@ export class SellerStatsDetailPage implements OnInit {
   period = 'week';
   stats: any = null;
   loading = false;
+  dayMap: { [key: string]: string } = {
+    'Monday': 'Lunes',
+    'Tuesday': 'Martes',
+    'Wednesday': 'Miércoles',
+    'Thursday': 'Jueves',
+    'Friday': 'Viernes',
+    'Saturday': 'Sábado',
+    'Sunday': 'Domingo'
+  };
 
   // Chart: Sales Trend
   public lineChartData: ChartData<'line'> = {
@@ -27,8 +36,15 @@ export class SellerStatsDetailPage implements OnInit {
       legend: { display: false }
     },
     scales: {
-      y: { beginAtZero: true, grid: { display: false } },
-      x: { grid: { display: false } }
+      y: {
+        beginAtZero: true,
+        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+        ticks: { color: '#ffffff' }
+      },
+      x: {
+        grid: { display: false },
+        ticks: { color: '#ffffff' }
+      }
     }
   };
 
@@ -41,7 +57,10 @@ export class SellerStatsDetailPage implements OnInit {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: 'bottom' }
+      legend: {
+        position: 'bottom',
+        labels: { color: '#ffffff' }
+      }
     }
   };
 
@@ -55,6 +74,10 @@ export class SellerStatsDetailPage implements OnInit {
     this.loading = true;
     this.sellerService.getAdvancedStats(this.period).subscribe({
       next: (data) => {
+        if (data && data.bestDay && data.bestDay.Dia) {
+          const englishDay = data.bestDay.Dia.trim();
+          data.bestDay.Dia = this.dayMap[englishDay] || englishDay;
+        }
         this.stats = data;
         this.prepareCharts();
         this.loading = false;

@@ -90,6 +90,15 @@ exports.addToCart = async (req, res) => {
         );
         console.log(`[AddToCart] Stock restado. Nuevo stock: ${stockDisponible - quantity}`);
 
+        // 4. Auto-ocultar si llegó a cero
+        if (stockDisponible - quantity <= 0) {
+            await client.query(
+                'UPDATE producto SET "Activo" = FALSE WHERE "ID_Producto" = $1',
+                [productId]
+            );
+            console.log(`[AddToCart] Producto ${productId} autodesactivado por stock cero.`);
+        }
+
         await client.query('COMMIT');
         res.json({ message: 'Producto agregado y stock reservado' });
 

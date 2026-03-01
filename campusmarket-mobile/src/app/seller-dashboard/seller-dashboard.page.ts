@@ -16,6 +16,16 @@ import { environment } from '../../environments/environment';
 })
 export class SellerDashboardPage implements OnInit, ViewWillEnter {
   user: any = null;
+  bestDay: any = null;
+  dayMap: { [key: string]: string } = {
+    'Monday': 'Lunes',
+    'Tuesday': 'Martes',
+    'Wednesday': 'Miércoles',
+    'Thursday': 'Jueves',
+    'Friday': 'Viernes',
+    'Saturday': 'Sábado',
+    'Sunday': 'Domingo'
+  };
   selectedTab = 'pedidos';
 
   orders: any[] = [];
@@ -479,6 +489,10 @@ export class SellerDashboardPage implements OnInit, ViewWillEnter {
     this.loading = true;
     this.sellerService.getAdvancedStats(this.statsPeriod).subscribe({
       next: (data) => {
+        if (data && data.bestDay && data.bestDay.Dia) {
+          const englishDay = data.bestDay.Dia.trim();
+          data.bestDay.Dia = this.dayMap[englishDay] || englishDay;
+        }
         this.advStats = data;
         this.loading = false;
       },

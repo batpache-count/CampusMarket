@@ -6,12 +6,15 @@
 
 .main-header ion-toolbar {
   --background: transparent;
+  min-height: auto;
+}
+
+.main-header ion-toolbar:first-child {
   padding-top: var(--ion-safe-area-top, 20px);
-  padding-bottom: 5px;
 }
 
 .categories-container {
-  padding: 0 10px 10px 10px;
+  padding: 0 10px 8px 10px;
   display: flex;
   overflow-x: auto;
   white-space: nowrap;
@@ -54,8 +57,8 @@
 
 .categories-toolbar {
   --border-width: 0;
-  --min-height: 45px;
-  padding-bottom: 5px;
+  --min-height: 40px;
+  padding-bottom: 2px;
 }
 
 .stat-label {
@@ -100,7 +103,8 @@ p {
 
 .search-toolbar {
   --border-width: 0;
-  padding-bottom: 10px;
+  --min-height: 45px;
+  padding-bottom: 4px;
 }
 
 .search-container {
