@@ -36,7 +36,7 @@
     margin-bottom: 0;
 
     ion-label {
-      color: #ffffff;
+      color: #ffffff !important;
       font-weight: 600;
     }
 
@@ -46,10 +46,27 @@
       border: 1px solid #ffffff;
 
       ion-label {
-        color: #000000;
+        color: #000000 !important;
       }
     }
   }
+}
+
+.categories-toolbar {
+  --border-width: 0;
+  --min-height: 45px;
+  padding-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--high-contrast-text);
+  margin: 4px 0 0 0;
+}
+
+p {
+  font-size: 0.85rem;
+  color: var(--high-contrast-text);
 }
 
 .app-title {
@@ -108,12 +125,30 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   transition: all 0.3s ease;
+
+  ion-card-subtitle {
+    color: var(--high-contrast-text) !important;
+    opacity: 1;
+    font-weight: 600;
+  }
+
+  ion-card-title {
+    font-weight: 800;
+    font-size: 1.4rem;
+    letter-spacing: 0.5px;
+    color: var(--high-contrast-text);
+  }
+}
+
+ion-card-subtitle {
+  font-weight: 600;
+  color: var(--high-contrast-text);
+  letter-spacing: 0.5px;
 }
 
 .out-of-stock-card {
   filter: grayscale(1);
   opacity: 0.7;
-  // background-color: #f3f4f6 !important; // Removed to let card background show
 
   * {
     color: var(--ion-color-medium) !important;
@@ -146,6 +181,13 @@
     text-transform: uppercase;
     z-index: 2;
   }
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--high-contrast-text);
+  margin: 0;
 }
 
 .price {

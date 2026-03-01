@@ -1,7 +1,6 @@
 /* RESET & VARIABLES */
 ion-content {
-    --background: #f2f2f7;
-    /* Light Grey Background */
+    --background: var(--ion-background-color);
 }
 
 .center-msg {
@@ -10,7 +9,7 @@ ion-content {
     justify-content: center;
     align-items: center;
     height: 100%;
-    color: #666;
+    color: var(--ion-color-medium);
     font-size: 1.1rem;
 }
 
@@ -23,17 +22,17 @@ ion-content {
 
 /* CARD STYLING */
 .card {
-    background: #ffffff;
+    background: var(--ion-card-background);
     border-radius: 12px;
     padding: 16px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(var(--ion-color-medium-rgb), 0.1);
 }
 
 .card-header {
     font-size: 0.85rem;
     font-weight: 700;
-    color: #8e8e93;
-    /* IOS Grey */
+    color: var(--ion-color-medium);
     text-transform: uppercase;
     margin-bottom: 12px;
     letter-spacing: 0.5px;
@@ -61,7 +60,7 @@ ion-content {
 /* Status Colors */
 .Pendiente {
     background-color: var(--ion-color-warning);
-    color: black;
+    color: var(--high-contrast-text) !important;
 }
 
 
@@ -88,10 +87,11 @@ ion-content {
 
 .status-select {
     padding: 5px 10px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--ion-color-light-shade);
     border-radius: 8px;
     font-weight: bold;
-    color: #333;
+    color: var(--ion-text-color);
+    background: var(--ion-item-background);
     max-width: 150px;
 }
 
@@ -105,7 +105,7 @@ ion-content {
 .img-box {
     width: 100%;
     height: 180px;
-    background: #f9f9f9;
+    background: var(--ion-item-background);
     border-radius: 8px;
     overflow: hidden;
 
@@ -119,8 +119,7 @@ ion-content {
 .product-title {
     font-size: 1.3rem;
     font-weight: 800;
-    color: #000000;
-    /* STRICT BLACK */
+    color: var(--ion-text-color);
     margin: 0 0 12px 0;
     line-height: 1.2;
 }
@@ -138,13 +137,13 @@ ion-content {
 
 .d-label {
     font-size: 0.75rem;
-    color: #888;
+    color: var(--ion-color-medium);
     font-weight: 700;
 }
 
 .d-value {
     font-size: 1.1rem;
-    color: #000;
+    color: var(--ion-text-color);
     font-weight: 600;
 }
 
@@ -170,7 +169,7 @@ ion-content {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background: #eee;
+    background: var(--ion-item-background);
     overflow: hidden;
 
     img {
@@ -183,7 +182,7 @@ ion-content {
 .client-name {
     font-size: 1.1rem;
     font-weight: 700;
-    color: #000;
+    color: var(--ion-text-color);
 }
 
 .client-contact {
@@ -194,7 +193,7 @@ ion-content {
 
 .divider {
     height: 1px;
-    background: #eee;
+    background: var(--ion-color-light-shade);
     margin: 10px 0;
 }
 
@@ -202,38 +201,38 @@ ion-content {
     display: flex;
     align-items: center;
     font-size: 1rem;
-    color: #333;
+    color: var(--ion-text-color);
     margin-bottom: 8px;
 
     ion-icon {
         margin-right: 8px;
-        color: #777;
+        color: var(--ion-color-medium);
     }
 
     &.transfer-method {
         ion-icon {
-            color: #fbc02d; // Yellow for Transfer
+            color: var(--high-contrast-text) !important;
         }
     }
 }
 
 .notes-box {
     margin-top: 10px;
-    background: #f8f9fa;
+    background: var(--ion-item-background);
     padding: 10px;
     border-radius: 6px;
-    color: #444;
+    color: var(--ion-text-color);
     font-size: 0.95rem;
-    border-left: 3px solid #ccc;
+    border-left: 3px solid var(--ion-color-primary);
 }
 
 .status-redo-card {
-    background: #ffffff;
+    background: var(--ion-card-background);
     border-radius: 16px;
     padding: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
-    border: 1px solid #f0f0f0;
+    border: 1px solid rgba(var(--ion-color-medium-rgb), 0.1);
 
     .current-status-display {
         display: flex;
@@ -244,8 +243,8 @@ ion-content {
         margin-bottom: 20px;
         font-weight: 700;
         font-size: 1.1rem;
-        background: #f8f9fa;
-        color: #333;
+        background: var(--ion-item-background);
+        color: var(--ion-text-color);
         transition: all 0.3s ease;
 
         ion-icon {
@@ -279,7 +278,7 @@ ion-content {
 
         &.Cancelado {
             color: var(--ion-color-danger);
-            background: #fff5f5;
+            background: rgba(var(--ion-color-danger-rgb), 0.05);
         }
 
         &.is-finalized {
@@ -302,10 +301,10 @@ ion-content {
         justify-content: center;
         padding: 12px 8px;
         border-radius: 12px;
-        border: 2px solid #f0f0f0;
+        border: 2px solid var(--ion-color-light-shade);
         cursor: pointer;
         transition: all 0.2s ease;
-        color: #666;
+        color: var(--high-contrast-text) !important;
 
         ion-icon {
             font-size: 1.5rem;
@@ -339,8 +338,8 @@ ion-content {
 }
 
 .waiting-box {
-    background-color: #fff9e6;
-    border: 1px solid #ffeeba;
+    background-color: var(--ion-color-warning-tint);
+    border: 1px solid var(--ion-color-warning-shade);
     border-radius: 8px;
     padding: 12px;
     margin-top: 15px;
@@ -356,7 +355,7 @@ ion-content {
     p {
         margin: 0;
         font-size: 0.9rem;
-        color: #856404;
+        color: var(--high-contrast-text) !important;
         line-height: 1.4;
     }
 }
@@ -372,7 +371,7 @@ ion-content {
 
     .btn-hint {
         font-size: 0.8rem;
-        color: #666;
+        color: var(--high-contrast-text) !important;
         margin-top: 8px;
     }
 }
@@ -401,7 +400,7 @@ ion-content {
 
 .report-section {
     margin-top: 25px;
-    border-top: 1px dashed #ddd;
+    border-top: 1px dashed var(--ion-color-light-shade);
     padding-top: 15px;
     text-align: center;
 
@@ -444,11 +443,11 @@ ion-content {
 
         .transaction-id {
             font-size: 0.8rem;
-            color: #666;
+            color: var(--high-contrast-text) !important;
             margin: 0;
 
             strong {
-                color: #333;
+                color: var(--high-contrast-text);
                 word-break: break-all;
             }
         }
@@ -458,13 +457,13 @@ ion-content {
         font-size: 0.95rem;
         font-weight: 700;
         margin: 4px 0;
-        color: #333;
+        color: var(--high-contrast-text);
         text-align: center;
     }
 
     p {
         font-size: 0.8rem;
-        color: #666;
+        color: var(--high-contrast-text) !important;
         margin-bottom: 12px;
         text-align: center;
     }
@@ -473,7 +472,7 @@ ion-content {
         display: flex;
         justify-content: center;
         padding: 12px;
-        background: white;
+        background: var(--ion-item-background);
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         width: fit-content;
         margin: 0 auto;
@@ -493,7 +492,7 @@ ion-content {
         justify-content: center;
         gap: 8px;
         padding: 10px;
-        background: #f4f4f4;
+        background: var(--ion-color-light);
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.2s;
@@ -506,7 +505,7 @@ ion-content {
         .qr-token {
             font-family: monospace;
             font-size: 0.85rem;
-            color: #333;
+            color: var(--ion-text-color);
             font-weight: 700;
         }
 
@@ -523,7 +522,7 @@ ion-content {
     .bank-title {
         font-size: 0.8rem;
         font-weight: 800;
-        color: #888;
+        color: var(--high-contrast-text) !important;
         margin-bottom: 8px;
         letter-spacing: 0.5px;
     }
@@ -535,12 +534,12 @@ ion-content {
         font-size: 0.95rem;
 
         .bank-label {
-            color: #666;
+            color: var(--high-contrast-text) !important;
             font-weight: 500;
         }
 
         .bank-value {
-            color: #000;
+            color: var(--high-contrast-text) !important;
             font-weight: 700;
         }
     }
@@ -550,15 +549,15 @@ ion-content {
     margin-top: 16px;
 
     .voucher-display {
-        background: #fdfdfd;
-        border: 1px solid #eee;
+        background: var(--ion-item-background);
+        border: 1px solid var(--ion-color-light-shade);
         border-radius: 12px;
         padding: 16px;
 
         .voucher-label {
             font-size: 0.8rem;
             font-weight: 800;
-            color: #888;
+            color: var(--ion-color-medium);
             margin-bottom: 12px;
             text-align: center;
         }
@@ -598,7 +597,7 @@ ion-content {
 
         .btn-hint {
             font-size: 0.85rem;
-            color: #666;
+            color: var(--ion-color-medium);
             margin-top: 10px;
         }
     }
@@ -607,7 +606,7 @@ ion-content {
 .seller-actions {
     .btn-hint {
         font-size: 0.8rem;
-        color: #888;
+        color: var(--ion-color-medium);
         text-align: center;
         margin-top: 12px;
     }

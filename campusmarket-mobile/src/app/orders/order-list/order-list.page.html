@@ -32,8 +32,8 @@
         <ion-item lines="none" class="ion-no-padding">
           <ion-icon name="bag-handle-outline" slot="start" color="primary"></ion-icon>
           <ion-label>
-            <h2>Pedido #{{ order.ID_Pedido }}</h2>
-            <p>{{ order.Fecha_Creacion | date:'medium' }}</p>
+            <h2 class="high-contrast-title">Pedido #{{ order.ID_Pedido }}</h2>
+            <p class="high-contrast-text">{{ order.Fecha_Creacion | date:'medium' }}</p>
           </ion-label>
           <ion-badge [color]="getStatusColor(order.Estado_Pedido)" slot="end">
             {{ order.Estado_Pedido }}

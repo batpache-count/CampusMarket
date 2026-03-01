@@ -84,6 +84,11 @@
 
     --ion-item-background: #ffffff;
     --ion-card-background: #ffffff;
+
+    --high-contrast-text: #000000;
+
+    /* Dynamic Logos */
+    --app-logo-url: url('/assets/logo_claro.png');
 }
 
 /* Dark Mode - ONLY Applied via body.dark class (Manual Toggle) */
@@ -139,12 +144,12 @@ body.dark {
     --ion-color-dark-shade: #d7d8da;
     --ion-color-dark-tint: #f5f6f9;
 
-    --ion-color-medium: #989aa2;
-    --ion-color-medium-rgb: 152, 154, 162;
+    --ion-color-medium: #ffffff;
+    --ion-color-medium-rgb: 255, 255, 255;
     --ion-color-medium-contrast: #000000;
     --ion-color-medium-contrast-rgb: 0, 0, 0;
-    --ion-color-medium-shade: #86888f;
-    --ion-color-medium-tint: #a2a4ab;
+    --ion-color-medium-shade: #f0f0f0;
+    --ion-color-medium-tint: #ffffff;
 
     --ion-color-light: #222428;
     --ion-color-light-rgb: 34, 36, 40;
@@ -157,9 +162,14 @@ body.dark {
     --ion-background-color: #111827;
     --ion-background-color-rgb: 17, 24, 39;
 
-    --ion-text-color: #f3f4f6;
-    --ion-text-color-rgb: 243, 244, 246;
+    --ion-text-color: #ffffff;
+    --ion-text-color-rgb: 255, 255, 255;
 
     --ion-item-background: #1f2937;
     --ion-card-background: #1f2937;
+
+    --high-contrast-text: #ffffff;
+
+    /* Dynamic Logos */
+    --app-logo-url: url('/assets/logo_oscuro.png');
 }

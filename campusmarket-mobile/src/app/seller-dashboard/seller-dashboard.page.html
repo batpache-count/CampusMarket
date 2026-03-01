@@ -122,8 +122,8 @@
       </ion-list>
 
       <div class="empty-state ion-text-center ion-padding" *ngIf="!loading && orders.length === 0">
-        <ion-icon name="documents-outline" style="font-size: 3rem; color: #ccc;"></ion-icon>
-        <p>No hay pedidos recientes.</p>
+        <ion-icon name="documents-outline" style="font-size: 3rem; color: #ffffff;"></ion-icon>
+        <p style="color: #ffffff;">No hay pedidos recientes.</p>
       </div>
     </div>
 
@@ -133,8 +133,9 @@
         <ion-spinner name="crescent"></ion-spinner>
       </div>
 
-      <div *ngIf="!loading && products.length === 0" class="empty-state ion-text-center ion-padding">
-        <ion-icon name="cube-outline" style="font-size: 3rem; color: #ccc;"></ion-icon>
+      <div style="color: #ffffff !important;" *ngIf="!loading && products.length === 0"
+        class="empty-state ion-text-center ion-padding">
+        <ion-icon name="cube-outline" style="font-size: 3rem; color: #ffffff;"></ion-icon>
         <p>No tienes productos publicados.</p>
         <ion-button (click)="addProduct()" fill="outline">Agregar primer producto</ion-button>
       </div>
@@ -185,8 +186,9 @@
         <ion-spinner name="crescent"></ion-spinner>
       </div>
 
-      <div *ngIf="!loading && locations.length === 0" class="empty-state ion-text-center ion-padding">
-        <ion-icon name="map-outline" style="font-size: 3rem; color: #ccc;"></ion-icon>
+      <div style="color: #ffffff !important;" *ngIf="!loading && locations.length === 0"
+        class="empty-state ion-text-center ion-padding">
+        <ion-icon name="map-outline" style="font-size: 3rem; color: #ffffff;"></ion-icon>
         <p>No has definido puntos de entrega.</p>
         <ion-button (click)="addLocation()" fill="outline">Crear Punto de Entrega</ion-button>
       </div>

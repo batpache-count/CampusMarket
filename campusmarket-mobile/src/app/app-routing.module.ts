@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
+import { RoleGuard } from './guards/role.guard';
 
 const routes: Routes = [
   {
@@ -66,23 +67,33 @@ const routes: Routes = [
   },
   {
     path: 'seller-products',
-    loadChildren: () => import('./seller-products/seller-products.module').then(m => m.SellerProductsPageModule)
+    loadChildren: () => import('./seller-products/seller-products.module').then(m => m.SellerProductsPageModule),
+    canActivate: [RoleGuard],
+    data: { expectedRole: 'Vendedor' }
   },
   {
     path: 'my-products',
-    loadChildren: () => import('./my-products/my-products.module').then(m => m.MyProductsPageModule)
+    loadChildren: () => import('./my-products/my-products.module').then(m => m.MyProductsPageModule),
+    canActivate: [RoleGuard],
+    data: { expectedRole: 'Vendedor' }
   },
   {
     path: 'product-editor/:id',
-    loadChildren: () => import('./product-editor/product-editor.module').then(m => m.ProductEditorPageModule)
+    loadChildren: () => import('./product-editor/product-editor.module').then(m => m.ProductEditorPageModule),
+    canActivate: [RoleGuard],
+    data: { expectedRole: 'Vendedor' }
   },
   {
     path: 'seller-dashboard',
-    loadChildren: () => import('./seller-dashboard/seller-dashboard.module').then(m => m.SellerDashboardPageModule)
+    loadChildren: () => import('./seller-dashboard/seller-dashboard.module').then(m => m.SellerDashboardPageModule),
+    canActivate: [RoleGuard],
+    data: { expectedRole: 'Vendedor' }
   },
   {
     path: 'location-editor/:id',
-    loadChildren: () => import('./location-editor/location-editor.module').then(m => m.LocationEditorPageModule)
+    loadChildren: () => import('./location-editor/location-editor.module').then(m => m.LocationEditorPageModule),
+    canActivate: [RoleGuard],
+    data: { expectedRole: 'Vendedor' }
   },
   {
     path: 'order-config/:itemId',
@@ -90,7 +101,9 @@ const routes: Routes = [
   },
   {
     path: 'seller-stats-detail',
-    loadChildren: () => import('./seller-stats-detail/seller-stats-detail.module').then(m => m.SellerStatsDetailPageModule)
+    loadChildren: () => import('./seller-stats-detail/seller-stats-detail.module').then(m => m.SellerStatsDetailPageModule),
+    canActivate: [RoleGuard],
+    data: { expectedRole: 'Vendedor' }
   },
 
 

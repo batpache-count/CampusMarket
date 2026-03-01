@@ -2,6 +2,18 @@
     max-width: 500px;
     margin: 0 auto;
 
+    .register-logo {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 15px;
+        background-image: var(--app-logo-url);
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        border-radius: 18px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+
     .input-group {
         margin-bottom: 10px;
 

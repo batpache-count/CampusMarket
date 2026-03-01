@@ -21,8 +21,9 @@
       <ion-searchbar placeholder="¿Qué buscas hoy?" (ionInput)="onSearchChange($event)" search-icon="search-outline"
         class="custom-searchbar"></ion-searchbar>
     </div>
+  </ion-toolbar>
 
-    <!-- Category Chips -->
+  <ion-toolbar color="primary" class="categories-toolbar">
     <div class="categories-container">
       <ion-chip [class.chip-selected]="selectedCategory === ''" class="category-chip" (click)="selectCategory('')">
         <ion-label>Todos</ion-label>
